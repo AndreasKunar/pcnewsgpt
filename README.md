@@ -16,9 +16,9 @@ Dies ist eine Technologiedemonstration basierend auf Ideen von [imartinez/privat
   + mittels Wissensbasis in chroma vactorDB und llama.cpp basiertem KI Modell
 + `.env` - Konfigurationsdatei
 
-## Installation (unter macOS)
+## Installation (getestet unter macOS und Linux)
 
-Dieses Projekt verwendet `poetry` für die Verwaltung der Abhängigkeiten.
+Dieses Projekt verwendet momentan `poetry` für die Verwaltung der Abhängigkeiten. Dies funktioniert aber nicht so wie gedacht, und gehört überarbeitet.
 
 Über `conda` eine virtuelle Python Umgebung anlegen und aktivieren:
 
@@ -44,14 +44,23 @@ python -m spacy download de_core_news_lg
 
 LLaMa basiertes KI-Modell, z.B. `openbuddy-llama2-13b-v11.1.Q4_K_M.gguf` (ein Multilinguales Modell) von [huggingface.co/TheBloke](https://huggingface.co/TheBloke) in `./models` installieren, ggf. `.env` Konfiguration anpassen.
 
+Bei der allerersten Ausführung laden die `SentenceTransformers` die entsprechenden Dateien/Modelle selbstätig aus dem Internet herunter.
+
 ## Ausführen
 
-Vor jedem neuen Start bitte nicht vergessen, ggf. die Python Umgebung über `conda activate pcnewsgpt` zu aktivieren!
+Vor jedem neuen Start bitte nicht vergessen, die conda Umgebung ggf. über `conda activate pcnewsgpt` zu aktivieren!
 
 ### `import.py` - Wissensbasis Importieren
 
-### TODO Beschreibung
+Offenes/Verbesserungspotenzial:
+
++ PDF-Umwandlung ist langsam, gehört optimiert
++ PDF-Umwandlung hat noch Verbesserungspotenzial
++ `langchain` ist hier eigentlich unnötiger overhead
 
 ### `abfrage.py` - Wissensbasis Abfragen
 
-### more TODO Beschreibung
+Offenes/Verbesserungspotenzial:
+
++ Deutscher `PROMPT` muss noch optimiert werden
++ `langchain` ist hier eigentlich unnötiger overhead, ohne dieses wäre die Abfrage deutlich schneller
