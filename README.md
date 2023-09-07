@@ -44,8 +44,6 @@ python -m spacy download de_core_news_lg
 
 LLaMa basiertes KI-Modell, z.B. `openbuddy-llama2-13b-v11.1.Q4_K_M.gguf` (ein Multilinguales Modell) von [huggingface.co/TheBloke](https://huggingface.co/TheBloke) in `./models` installieren, ggf. `.env` Konfiguration anpassen.
 
-&nbsp;
-
 ## Ausführen
 
 Vor jedem neuen Start bitte nicht vergessen, ggf. die Python Umgebung über `conda activate pcnewsgpt` zu aktivieren!
