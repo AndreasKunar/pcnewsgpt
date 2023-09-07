@@ -1,3 +1,18 @@
+# additional ignores: 
+.vscode/*
+poetry.lock
+.DS_STORE
+
+# source documents content
+source_documents/*
+
+# models content
+models/*
+
+# Local Chroma db
+.chroma/
+db/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
