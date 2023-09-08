@@ -11,7 +11,7 @@
     + embed and persist in chromadb
     + optimized for quality first. Speed might come later.
     
-    Update V0.1.1: besser lesbare, verständliche chunk-texte
+    Update V0.1.2: besser lesbare, verständliche chunk-texte, Tippfehler korrigiert
         
 """
 
@@ -200,5 +200,5 @@ for idx,file_path in enumerate(file_paths):
     print("... und in der Wissensdatenbank gespeichert.\n")
     
 # Statistics
-print(f"Insgesamt {len(file_paths)} Dokument(e) mit {len(total_chunks)} Textteil(en) wurden aus dem Ordner {source_directory} eingelesen.")
+print(f"Insgesamt {len(file_paths)} Dokument(e) mit {total_chunks} Textteil(en) wurden aus dem Ordner {source_directory} eingelesen.")
 db = None
