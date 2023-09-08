@@ -6,7 +6,7 @@ Ein besserer, zuverlässiger Ansatz wäre, dieser sprachgewandten KI eine fakten
 
 Das Projekt PCnewsGPT versucht diese Idee in einer speziell auf deutschsprachigen Inhalt abgestimmten Lösung umzusetzen. Und diese Lösung rein auf einem lokalen Computer laufen zu lassen. Damit das Wissen komplett lokal und vertraulich bzw. sicher verarbeitet wird – d.h. ohne öffentlich neues, zukünftiges KI-Lernmaterial mit eventuell vertraulichen, urheberrechtsgeschützten Inhalten zu liefern. PCnewsGPT wurde als Open-Source Python-Programme unter Apache-Lizenz realisiert und ist hier öffentlich verfügbar bzw. jederzeit anpassbar.
 
-*** PCnewsGPT ist aber nur ein laufend weiterentwickelter Prototyp, jegliche Anwendung erfolgt auf eigene Gefahr. ***
+***PCnewsGPT ist aber nur ein laufend weiterentwickelter Prototyp, jegliche Anwendung erfolgt auf eigene Gefahr.***
 
 ## Technische Details
 

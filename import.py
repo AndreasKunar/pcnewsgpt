@@ -31,7 +31,7 @@ text_splitter_parameters = literal_eval(os_environ.get('TEXT_SPLITTER_PARAMETERS
 """
 Initial banner Message
 """
-print("\nPCnewsGPT Wissensimporter V0.1.1\n")
+print("\nPCnewsGPT Wissensimporter V0.1.2\n")
 
 """
 Map file extensions to document loaders and their arguments
