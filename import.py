@@ -7,7 +7,12 @@
       + substitute ligatures with processable text
       + get rid of other strange things
     + split PDFs into pages for better chunking
-    + chunk, embed and persist in chromadb
+    + split pages into digestable chunks of text (SpaCy, text-cleanup)
+    + embed and persist in chromadb
+    + optimized for quality first. Speed might come later.
+    
+    Update V0.1.1: besser lesbare, verständliche chunk-texte
+        
 """
 
 """
@@ -26,7 +31,7 @@ text_splitter_parameters = literal_eval(os_environ.get('TEXT_SPLITTER_PARAMETERS
 """
 Initial banner Message
 """
-print("PCnewsGPT Wissensimporter V0.1\n")
+print("\nPCnewsGPT Wissensimporter V0.1.1\n")
 
 """
 Map file extensions to document loaders and their arguments
@@ -98,6 +103,8 @@ def load_file(file_path: str) -> langchain_Document:
         doc = lc_doc[0].page_content   #file_path still holds document source
         # change single \n in content to " ", but not multiple \n
         doc = regex_sub(r'(?<!\n)\n(?!\n)', ' ',doc)
+        # remove line-break remnants
+        doc =doc.replace('- ', '')
         # change multiple consecutive \n in content to just one \n
         doc = regex_sub(r'\n{2,}', '\n',doc)
         # substitute known ligatures
@@ -112,6 +119,7 @@ def load_file(file_path: str) -> langchain_Document:
         doc =doc.replace('(cid:427)', 'tti')
         # substiture strange characters
         doc =doc.replace('€', 'EUR')
+        doc =doc.replace("„", '"')
         doc =doc.replace('\uf0b7', '*')
         doc =doc.replace('\uf031\uf02e', '1.')
         doc =doc.replace('\uf032\uf02e', '2.')
@@ -122,8 +130,6 @@ def load_file(file_path: str) -> langchain_Document:
         doc =doc.replace('\uf037\uf02e', '7.')
         doc =doc.replace('\uf038\uf02e', '8.')
         doc =doc.replace('\uf039\uf02e', '9.')
-        # remove line-break remnants
-        doc =doc.replace('- ', '')
                 
         # split doc-content into pages andremove trailing empty pages
         pages =doc.split('\x0c')
@@ -165,7 +171,7 @@ for idx,file_path in enumerate(file_paths):
     chunks = text_splitter.split_documents(documents)
     print(f"... zerteilt auf {len(chunks)} Textteil(e) ...")
     total_chunks += len(chunks)
-    # numbering of chunks per source
+    # tidying-up chunk text and numbering of chunks per source
     n_chunk=1
     chunk_name=chunks[0].metadata["source"]
     for i in range(len(chunks)):
@@ -176,6 +182,12 @@ for idx,file_path in enumerate(file_paths):
         else:
             n_chunk += 1
         chunks[i].metadata["source"]= f'{chunks[i].metadata["source"]} (chunk {n_chunk})'
+        
+        # Tidying-up chunk text
+        txt = chunks[i].page_content.replace('\n', ' ') # remove all \n from text
+        txt = txt.replace("'", '"')                     # replace single with double quotes
+        txt = ' '.join(txt.split())                     # replace multiple spaces with single space
+        txt = chunks[i].page_content
         
     # create embeddings and persist
     if db is None:

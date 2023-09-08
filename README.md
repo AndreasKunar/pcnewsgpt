@@ -1,8 +1,18 @@
-# PC-News Inhaltsabfragen mittels KI
+# PCnewsGPT – eine deutschsprachige KI-basierte Wissensabfrage
 
-KI-Wissensabfrage von lokal gespeicherten PC-News (als PDF-Dateien) mittels [Retrieval Augmented Generation (RAG)](https://www.promptingguide.ai/techniques/rag) - vollkommen ohne Cloud am lokalen Computer, aber leicht änderbar auf mix- oder cloud-Betrieb durch das verwendete [langchain](https://github.com/langchain-ai/langchain) Framework.
+Wir verwenden die aktuelle KI wie z.B. chatGPT oft komplett falsch – nämlich als ein Orakel. Ihre eigentliche Stärke ist aber das Verständnis unserer Sprache, und auch das sprachlich gut mit Text antworten zu Können. Weil, obwohl die KI große Teile des öffentlichen Internets gelernt hat, ist ihr spezifisches Wissen sehr beschränkt. Sie ist im Wissen sehr auf den angloamerikanischen Sprachraum fokussiert. Und das Wissen ist mit jenem Zeitpunkt eingefroren, zu dem sie fertig angelernt war – ein aktuelles Wissen kennt sie nicht. Und noch schlimmer, die Art wie sie programmiert wurde zwingt sie, auf Fragen immer mit etwas zu antworten – damit etwas zu erfinden bzw. mit etwas komplett Falschem zu halluzinieren.
 
-Dies ist eine Technologiedemonstration basierend auf Ideen von [imartinez/privateGPT](https://github.com/imartinez/privateGPT). Sie besteht im Wesentlichen aus zwei Python Programmen und einer Konfigurationsdatei:
+Ein besserer, zuverlässiger Ansatz wäre, dieser sprachgewandten KI eine faktenbasierte Wissensbasis zur Seite zu stellen. Und bei Fragen über dieses Wissen, der KI die passenden Inhalte dieser Wissensbasis als Ausgangsmaterialen zu liefern, sie nur zum Analysieren, Verdichten des Wissens, und zum Formulieren der Antwort zu verwenden. Inklusive der Antwort, dass die KI nichts zur Frage Passendes in der Wissensbasis gefunden hat, anstatt hier zu halluzinieren.
+
+Das Projekt PCnewsGPT versucht diese Idee in einer speziell auf deutschsprachigen Inhalt abgestimmten Lösung umzusetzen. Und diese Lösung rein auf einem lokalen Computer laufen zu lassen. Damit das Wissen komplett lokal und vertraulich bzw. sicher verarbeitet wird – d.h. ohne öffentlich neues, zukünftiges KI-Lernmaterial mit eventuell vertraulichen, urheberrechtsgeschützten Inhalten zu liefern. PCnewsGPT wird realisiert als Open-Source Python-Programme unter Apache-Lizenz und ist hier öffentlich  verfügbar bzw. jederzeit anpassbar.
+
+*** PCnewsGPT ist aber nur ein laufend weiterentwickelter Prototyp, jegliche Anwendung erfolgt auf eigene Gefahr. ***
+
+## Technische Details
+
+KI-Wissensabfrage von lokal gespeicherten PDF-Dateien mittels [Retrieval Augmented Generation (RAG)](https://www.promptingguide.ai/techniques/rag) - vollkommen ohne Cloud am lokalen Computer, aber leicht änderbar auf mix- oder cloud-Betrieb durch das verwendete [langchain](https://github.com/langchain-ai/langchain) Framework.
+
+PCnewsGPT besteht im Wesentlichen aus zwei Python Programmen und einer Konfigurationsdatei:
 
 + `import.py` - importieren der PC-News PDF Dateien in eine lokale Wissensdatenbank
   + Python Code, orchestriert über das `langchain` KI-Framework
@@ -18,33 +28,35 @@ Dies ist eine Technologiedemonstration basierend auf Ideen von [imartinez/privat
 
 ## Installation (getestet unter macOS und Linux)
 
-Dieses Projekt verwendet momentan `poetry` für die Verwaltung der Abhängigkeiten. Dies funktioniert aber nicht so wie gedacht, und gehört überarbeitet.
+1. LLaMa basiertes KI-Modell, z.B. `openbuddy-llama2-13b-v11.1.Q4_K_M.gguf` (ein Multilinguales Modell) von [huggingface.co/TheBloke](https://huggingface.co/TheBloke) in Verzeichnis/Ordner `./models` installieren. Ggf. `.env` Konfiguration anpassen, falls anderes Modell verwendet wird.
 
-Über `conda` eine virtuelle Python Umgebung anlegen und aktivieren:
+2. PDF-Dateien der Wissensdatenbank (z.B. [PC-news PDF-Ausgabe](http://d.pcnews.at/_pdf/n178.pdf))in Verzeichnis/Ordner `./source_documents` kopieren.
 
-```shell
-conda create -n pcnewsgpt python=3.10.9
-conda activate pcnewsgpt
-```
+3. Nötige Python Bibliotheken installieren. Dieses Projekt verwendet momentan `poetry` für die Verwaltung der Abhängigkeiten. Dies funktioniert aber nicht so wie gedacht, und gehört überarbeitet.
 
-llama-cpp-python` manuell installieren - z.B. in Apple Silicon basierter VM mittels
+    + Über `conda` eine virtuelle Python Umgebung anlegen und aktivieren:
 
-```shell
-CMAKE_ARGS="-DUNAME_M=arm64 -DUNAME_p=arm -DLLAMA_NO_METAL=1" FORCE_CMAKE=1 pip install -U llama-cpp-python --no-cache-dir
-```
+    ```shell
+    conda create -n pcnewsgpt python=3.10.9
+    conda activate pcnewsgpt
+    ```
 
-Dann die Abhängigkeiten Installieren:
+    + llama-cpp-python` manuell installieren - z.B. in Apple Silicon basierter VM mittels
 
-```shell
-poetry --without-hashes export -f requirements.txt --output requirements.txt
-pip install -r requirements.txt
-pip install spacy
-python -m spacy download de_core_news_lg
-```
+    ```shell
+    CMAKE_ARGS="-DUNAME_M=arm64 -DUNAME_p=arm -DLLAMA_NO_METAL=1" FORCE_CMAKE=1 pip install -U llama-cpp-python --no-cache-dir
+    ```
 
-LLaMa basiertes KI-Modell, z.B. `openbuddy-llama2-13b-v11.1.Q4_K_M.gguf` (ein Multilinguales Modell) von [huggingface.co/TheBloke](https://huggingface.co/TheBloke) in `./models` installieren, ggf. `.env` Konfiguration anpassen.
+    + Dann die Abhängigkeiten Installieren:
 
-Bei der allerersten Ausführung laden die `SentenceTransformers` die entsprechenden Dateien/Modelle selbstätig aus dem Internet herunter.
+    ```shell
+    poetry --without-hashes export -f requirements.txt --output requirements.txt
+    pip install -r requirements.txt
+    pip install spacy
+    python -m spacy download de_core_news_lg
+    ```
+
+    + Bei der allerersten Ausführung laden die `SentenceTransformers` die entsprechenden Dateien/Modelle selbstätig aus dem Internet herunter.
 
 ## Ausführen
 
@@ -54,6 +66,7 @@ Vor jedem neuen Start bitte nicht vergessen, die conda Umgebung ggf. über `cond
 
 Offenes/Verbesserungspotenzial:
 
++ Vor dem Start bitte das Datenbankverzeichnis `./db` löschen
 + PDF-Umwandlung ist langsam, gehört optimiert
 + PDF-Umwandlung hat noch Verbesserungspotenzial
 + `langchain` ist hier eigentlich unnötiger overhead
