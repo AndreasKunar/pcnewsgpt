@@ -79,12 +79,10 @@ Diese Installation wurde unter Apple M1/M2 basiertem macOS (in host-OS und VM) u
 
     + Bei der ersten Ausführung laden die `SentenceTransformers` entsprechende Dateien/Modelle selbstätig aus dem Internet herunter. Ab dann ist die Lösung voll Offlinefähig.
 
-5. Nur falls in dieser Installation auch `import.py` ausgeführt werden soll (die Abfrage alleine ist simpler): Nötige Python Bibliotheken dafür in der jeweiligen passenden Version installieren. Das verwendet momentan `poetry` für die Verwaltung der Abhängigkeiten. Dies funktioniert aber nicht so wie gedacht, und gehört überarbeitet.
+5. Nur falls in dieser Installation auch `import.py` ausgeführt werden soll (die Abfrage alleine ist simpler), die nötige Python Bibliotheken dafür in der jeweiligen passenden Version installieren.
 
     ```shell
-    poetry --without-hashes export -f requirements.txt --output requirements.txt
     pip install -r requirements.txt
-    pip install spacy
     python -m spacy download de_core_news_lg
     ```
 
