@@ -19,9 +19,10 @@ model_n_ctx = int(os_environ.get('MODEL_N_CTX',2048))
 model_temp = float(os_environ.get('MODEL_TEMP',0.4))
 max_tokens = int(os_environ.get('MAX_TOKENS',500))
 model_threads = int(os_environ.get('MODEL_THREADS',8))
-model_n_gpu = int(os_environ.get('MODEL_GPU',0))
+model_n_gpu = int(os_environ.get('MODEL_GPU',1))
 target_source_chunks = int(os_environ.get('TARGET_SOURCE_CHUNKS',4))
 # debugging
+model_verbose = os_environ.get('MODEL_VERBOSE',"False") != "False"
 hide_source = os_environ.get('HIDE_SOURCE',"False") != "False"
 hide_source_details = os_environ.get('HIDE_SOURCE_DETAILS',"False") != "False"
 
@@ -54,7 +55,7 @@ llm = Llama(model_path=model_path,
             embedding = False,
             n_threads = model_threads,
             n_gpu_layers = model_n_gpu,
-            verbose = False,
+            verbose = model_verbose,
         )
 # Central prompt template
 prompt_template = 'Informationen: {}Beantworte die folgende Frage nur mit diesen Informationen. ' + \
