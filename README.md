@@ -51,16 +51,22 @@ Diese Installation wurde unter Apple M1/M2 basiertem macOS (in host-OS und VM) u
 
 4. Nötige Python Bibliotheken für `abfrage.py` in der jeweiligen passenden Version installieren.
 
-    + Bibliothek `llama-cpp-python` manuell installieren
+    + Aktuelle Bibliothek `llama-cpp-python` installieren
 
     ```shell
     pip install llama-cpp-python
     ```
 
-    + ***Alternativ*** für Apple Silicon basierte macOS Hardware oder macOS/Linux VMs mittels:
+    + ***Alternativ für Apple Silicon basierte Hardware in macOS für GPU-Verwendung*** mittels:
 
     ```shell
-    CMAKE_ARGS="-DUNAME_M=arm64 -DUNAME_p=arm -DLLAMA_NO_METAL=1" FORCE_CMAKE=1 pip install -U llama-cpp-python --no-cache-dir
+    CMAKE_ARGS="-DLLAMA_METAL=on" FORCE_CMAKE=1 pip install -U llama-cpp-python --no-cache-dir
+    ```
+
+    + ***Alternativ für Apple Silicon basierte Hardware in Linux VMs oder Docker*** (erfordert Install-Patch) mittels:
+
+    ```shell
+    CMAKE_ARGS="-DUNAME_M=arm64 -DUNAME_P=arm -DLLAMA_NO_METAL=1" FORCE_CMAKE=1 pip install -U llama-cpp-python --no-cache-dir
     ```
 
     + Dann die weiteren Bibliotheksabhängigkeiten installieren (`chromaDB` installiert dabei viele eigene Abhängigkeiten, wie z.B. `pyTorch`, Huggingface `transformers`, ...):
