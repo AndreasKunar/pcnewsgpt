@@ -1,8 +1,6 @@
 """
 *** PCnewsGPT Abfrage - abfrage.py ***
-
-Änderung: V0.2.1 ist eine komplette Neuadaption von V0.1, völlig OHNE langchain und mit optimiertem Abfragetext
-
+    Änderung: V0.2.x ist eine komplette Neuadaption von V0.1, völlig OHNE langchain und mit optimiertem Abfragetext
 """
 
 """
@@ -20,7 +18,8 @@ model_temp = float(os_environ.get('MODEL_TEMP',0.4))
 max_tokens = int(os_environ.get('MAX_TOKENS',500))
 model_threads = int(os_environ.get('MODEL_THREADS',8))
 model_n_gpu = int(os_environ.get('MODEL_GPU',1))
-target_source_chunks = int(os_environ.get('TARGET_SOURCE_CHUNKS',4))
+max_context_chunks = int(os_environ.get('MAX_CONTEXT_CHUNKS',4))
+max_context_distance = float(os_environ.get('MAX_CONTEXT_DISTANCE',6.0))
 # debugging
 model_verbose = os_environ.get('MODEL_VERBOSE',"False") != "False"
 hide_source = os_environ.get('HIDE_SOURCE',"False") != "False"
@@ -29,12 +28,12 @@ hide_source_details = os_environ.get('HIDE_SOURCE_DETAILS',"False") != "False"
 """
 Initial banner Message
 """
-print("\nPCnewsGPT Wissensabfrage V0.2.1\n")
+print("\nPCnewsGPT Wissensabfrage V0.2.3\n")
 
 """
 Initialize Chroma & Embeddings & Collections
 """
-print(f"Datenbank in {persist_directory} wird geöffnet, Embeddings {embeddings_model_name} werden eingelesen...")
+print(f"Datenbank {persist_directory}, Embeddings {embeddings_model_name} werden eingelesen...")
 import chromadb
 from chromadb.config import Settings
 chroma_client = chromadb.Client(Settings(chroma_db_impl="duckdb+parquet",
@@ -57,6 +56,7 @@ llm = Llama(model_path=model_path,
             n_gpu_layers = model_n_gpu,
             verbose = model_verbose,
         )
+
 # Central prompt template
 prompt_template = 'Informationen: {}Beantworte die folgende Frage nur mit diesen Informationen. ' + \
                   'Frage: {}\nAntwort: '
@@ -65,18 +65,19 @@ prompt_template = 'Informationen: {}Beantworte die folgende Frage nur mit diesen
 main query loop - interactive questions and answers until empty line is entered
 """
 while True:
-    # get user question
+    # get user question (empty line exits)
     question = input("\n### Frage: ")
     if question == "":
         break
-    
+
     #create embeddings and ask DB for context
     result = collection.query(
         query_texts=[question],
-        n_results=target_source_chunks
+        n_results=max_context_chunks
     )
     context_texts = result['documents'].__getitem__(0)
     context_sources = [dct['source'] for dct in result['metadatas'].__getitem__(0)] 
+    context_distances = result['distances'].__getitem__(0)
     
     # generate LLM prompt
     # tidy-up tcontext texts
@@ -86,26 +87,40 @@ while True:
         txt = txt.replace("'", '"')     # replace single with double quotes
         txt = ' '.join(txt.split())     # replace multiple spaces with single space
         context_texts[i] = txt
-        context = context + f"{i+1}. '{txt}'\n"    
-    prompt = prompt_template.format(context, question)    
+        # ignore context information which is too far away
+        if context_distances[i] <= max_context_distance:
+            context = context + f"{i+1}. '{txt}'\n"
 
-    # stream output tokens
-    print(f"\n### Antwort - bitte um etwas Geduld:")
-    for chunk in llm(
-        prompt = prompt,
-        max_tokens = max_tokens,
-        temperature = model_temp,
-        stop = ["###"],
-        stream = True,
-        ):
-        for choice in chunk['choices']:
-            print(choice['text'], end='', flush=True)
-    print("'",flush=True)
+    # generate LLM prompt only if we have viable context
+    if context == "":
+        print(f"\n### Keine passenden Informationen in Wissensbasis gefunden.")
+    else:
+        prompt = prompt_template.format(context, question)    
+
+        # print statistics at end of each answer together with sources
+        if not hide_source:
+            llm.verbose = True
+
+        # stream output tokens
+        print(f"\n### Antwort - bitte um etwas Geduld:")
+        for chunk in llm(
+            prompt = prompt,
+            max_tokens = max_tokens,
+            temperature = model_temp,
+            stream = True,
+            ):
+            for choice in chunk['choices']:
+                print(choice['text'], end='', flush=True)
+        print("",flush=True)
     
     # Print sources
     if not hide_source:
         print(f"\n### Quellen:")
         for i,source in enumerate(context_sources):
-            print(f"{i+1}. {source}")
+            print(f"[{i+1}] {source}, Distanz={context_distances[i]:.2f}", end="")
+            if not (context_distances[i] <= max_context_distance):
+                print(", *** ignoriert ***", end="")
             if not hide_source_details:
-                print(context_texts[i])
+                print(f":\n'{context_texts[i]}'")
+            else:
+                print("")

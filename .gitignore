@@ -2,7 +2,7 @@
 .vscode/*
 poetry.lock
 .DS_STORE
-experimenteller_code/*
+details/*
 
 # source documents content
 source_documents/*

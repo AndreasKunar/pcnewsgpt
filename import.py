@@ -1,18 +1,6 @@
 """
 *** PCnewsGPT Wissensimporter - import.py ***
-
-    + PCnews PDFs get converted into text via pdfminer
-    + clean PDFs
-      + get rid of strange/redundant \n characters
-      + substitute ligatures with processable text
-      + get rid of other strange things
-    + split PDFs into pages for better chunking
-    + split pages into digestable chunks of text (SpaCy, text-cleanup)
-    + embed and persist in chromadb
-    + optimized for quality first. Speed might come later.
-    
-    Update V0.1.2: besser lesbare, verständliche chunk-texte, Tippfehler korrigiert
-        
+    Änderung: V0.1.2.x - besser lesbare, verständliche chunk-texte, Tippfehler korrigiert
 """
 
 """
@@ -31,7 +19,7 @@ text_splitter_parameters = literal_eval(os_environ.get('TEXT_SPLITTER_PARAMETERS
 """
 Initial banner Message
 """
-print("\nPCnewsGPT Wissensimporter V0.1.2\n")
+print("\nPCnewsGPT Wissensimporter V0.1.2.1\n")
 
 """
 Map file extensions to document loaders and their arguments
@@ -119,7 +107,8 @@ def load_file(file_path: str) -> langchain_Document:
         doc =doc.replace('(cid:427)', 'tti')
         # substiture strange characters
         doc =doc.replace('€', 'EUR')
-        doc =doc.replace("„", '"')
+        doc =doc.replace("„", '"')              # Anführungszeichen
+        doc =doc.replace("—", '"')              # m-dash
         doc =doc.replace('\uf0b7', '*')
         doc =doc.replace('\uf031\uf02e', '1.')
         doc =doc.replace('\uf032\uf02e', '2.')

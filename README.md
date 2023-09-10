@@ -4,7 +4,7 @@ Wir verwenden die aktuelle KI wie z.B. chatGPT oft komplett falsch – nämlich 
 
 Ein besserer, zuverlässiger Ansatz wäre, dieser sprachgewandten KI eine faktenbasierte Wissensbasis zur Seite zu stellen. Und bei Fragen über dieses Wissen, der KI die passenden Inhalte dieser Wissensbasis als Ausgangsmaterialen zu liefern, sie nur zum Analysieren, Verdichten des Wissens, und zum Formulieren der Antwort zu verwenden. Inklusive dem Hinweis in der Antwort, dass die KI nichts zur Frage Passendes in der Wissensbasis gefunden hat, anstatt unbemerkt zu halluzinieren.
 
-Das Projekt PCnewsGPT versucht diese Idee in einer speziell auf deutschsprachigen Inhalt abgestimmten Lösung umzusetzen. Und diese Lösung rein auf einem lokalen Computer laufen zu lassen. Damit das Wissen komplett lokal und vertraulich bzw. sicher verarbeitet wird – d.h. ohne öffentlich neues, zukünftiges KI-Lernmaterial mit eventuell vertraulichen, urheberrechtsgeschützten Inhalten zu liefern. 
+Das Projekt PCnewsGPT versucht diese Idee in einer speziell auf deutschsprachigen Inhalt abgestimmten Lösung umzusetzen. Und diese Lösung rein auf einem lokalen Computer laufen zu lassen. Damit das Wissen komplett lokal und vertraulich bzw. sicher verarbeitet wird – d.h. ohne öffentlich neues, zukünftiges KI-Lernmaterial mit eventuell vertraulichen, urheberrechtsgeschützten Inhalten zu liefern.
 
 PCnewsGPT wurde als Open-Source Python-Programme unter Apache-Lizenz realisiert und ist hier öffentlich verfügbar bzw. jederzeit anpassbar. Der Test erfolgte mit den Inhalten der ClubComputer.at/DigitalSociety.at Clubzeitschrift PC-News (als unredigierte PDFs). Daher der Name "PCnewsGPT".
 
@@ -43,7 +43,7 @@ Diese Installation wurde unter Apple M1/M2 basiertem macOS (in host-OS und VM) u
     + Eine `conda` Python Environment anlegen und **aktivieren**:
 
     ```shell
-    conda create -n pcnewsgpt python=3.10.11 
+    conda create -n pcnewsgpt python=3.10.11 -y
     conda activate pcnewsgpt
     ```
 
@@ -90,24 +90,30 @@ Diese Installation wurde unter Apple M1/M2 basiertem macOS (in host-OS und VM) u
 
 ***Vor jedem neuen Start bitte nicht vergessen, die conda Umgebung ggf. über `conda activate pcnewsgpt` zu aktivieren!***
 
-### `import.py` - Wissensbasis Importieren
++ alle Einstellungen sind in `.env`
++ `import.py` fürs Wissensbasis Importieren
+  + Vor dem Start des Imports bitte das Datenbankverzeichnis `./db` löschen (das gehört geändert)
+  + momentan ist noch kein nachträgliches Erweitern der Wissensdatenbak möglich (geplant als `append.py`)
++ `abfrage.py` fürs Wissensbasis Abfragen
 
-Die aktuelle Version ist auf Funktion/Qualität/Änderbarkeit optimiert und langsam. `langchain` ist eigentlich unnötiger overhead, gehört ev. wegoptimiert (so wie in `abfrage.py`) sobald import Funktional "stabilisiert" ist
+## Offenes/Verbesserungspotenzial
 
-Offenes/Verbesserungspotenzial - Verbesserungsideen willkommen
+Fehlerberichte und Verbesserungsideen sind willkommen!
+
+### Importieren
 
 + `append.py` programmieren, welches zusätzliche Dateien zur bestehenden Wissensdatenbank hinzufügt (bedeutet refactor von `import.py` auf geteilten, wiederverwendbaren code für den eigentlichen Import)
 + Die Qualität der importierten Daten ist für das Ergebnis wesentlich. Hier besteht das größte Verbesserungspotenzial
+  + Ev. zusätzliche Zeichenersetzungen für bessere Lesbarkeit finden
   + Ev. größere chunk-Längen bzw. ev. overlaps - llama-2 hat nun ein 4096 context-limit. Größere chunks bedeuten aber ggf. weniger chunks für die Abfrage, um die Ausführungszeiten vertretbar zu halten. Bedeutet alles keine Programmänderung, sondern nur Parameteränderungen.
-  + Die PC-news Titelseiten tragen kein Wissen bei, ggehören ev. ignoriert. Benötige aber allgemeingültigen Algorithmus dafür
-+ Vor dem Start des Imports bitte das Datenbankverzeichnis `./db` löschen - gehört geändert
+  + Dokumenthierarchie Parsing wäre Ideal - Benötige aber allgemeingültigen Algorithmus
+    + ein analysierbares Inhaltsverzeichnis und das finden der dazugehörigen Seite(n) wäre ideal - Algorithmus?
+    + Die PC-news Titelseiten tragen kein Wissen bei, ggehören ev. ignoriert. Algorithmus diese generisch zu finden?
 + Getestet für .PDFs, andere Dateiformate gehören noch ggf. hinzugefügt
++ Die aktuelle Version ist auf Funktion/Qualität/Änderbarkeit optimiert und langsam.
++ `langchain` ist eigentlich unnötiger overhead, gehört ev. wegoptimiert (so wie in `abfrage.py`) sobald import Funktional "stabilisiert" ist.
 
-### `abfrage.py` - Wissensbasis Abfragen
-
-Offenes/Verbesserungspotenzial - Verbesserungsideen willkommen
+### Abfragen
 
 + Der "prompt" soll Halluzinationen vermeiden und kurz sein - es gibt dafür leider keine dt. Vorlagen/Ideen
-+ Vermeiden, daß ev. gleiche Context-Texte mehrfach in den Promt fließen - Ausführungszeit
-+ Ev. Auswerten der von der chroma DB Abfrage zurückgelieferten Frage zu Text Distanzen. Um die Anzahl für die KI-Abfrage mitgelieferter chunks dynahmisch anzupassen.
-+ Das initiale Analysieren des mit jeder Frage neu generierten "prompt" and die KI durch llama.cpp dauert lange und ist ohne Fortschrittsanzeige (deshalb das "Antwort - bitte um etwas Geduld").
++ Das initiale Analysieren des mit jeder Frage neu generierten "prompt" and die KI durch llama.cpp dauert lange und ist ohne Fortschrittsanzeige (deshalb das "Antwort - bitte um etwas Geduld"). Ev. gibts hier Methoden einer Fortschrittsanzeige.
