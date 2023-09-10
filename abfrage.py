@@ -28,7 +28,7 @@ hide_source_details = os_environ.get('HIDE_SOURCE_DETAILS',"False") != "False"
 """
 Initial banner Message
 """
-print("\nPCnewsGPT Wissensabfrage V0.2.3\n")
+print("\nPCnewsGPT Wissensabfrage V0.2.4\n")
 
 """
 Initialize Chroma & Embeddings & Collections
@@ -69,6 +69,7 @@ while True:
     question = input("\n### Frage: ")
     if question == "":
         break
+    question = question.strip().rstrip('?').rstrip('.').strip() # increases response accuracy
 
     #create embeddings and ask DB for context
     result = collection.query(
