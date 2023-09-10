@@ -91,8 +91,7 @@ Diese Installation wurde unter Apple M1/M2 basiertem macOS (in host-OS und VM) u
 ***Vor jedem neuen Start bitte nicht vergessen, die conda Umgebung ggf. über `conda activate pcnewsgpt` zu aktivieren!***
 
 + alle Einstellungen sind in `.env`
-+ `import.py` fürs Wissensbasis Importieren
-  + Vor dem Start des Imports bitte das Datenbankverzeichnis `./db` löschen (das gehört geändert)
++ `import.py` fürs Wissensbasis Importieren (die alte Datenbank wird dabei gelöscht!)
   + momentan ist noch kein nachträgliches Erweitern der Wissensdatenbak möglich (geplant als `append.py`)
 + `abfrage.py` fürs Wissensbasis Abfragen
 

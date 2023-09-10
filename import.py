@@ -7,7 +7,7 @@
 Load Parameters, etc.
 """
 from dotenv import load_dotenv
-from os import environ as os_environ
+from os import environ as os_environ, system as os_system
 from ast import literal_eval
 load_dotenv()
 persist_directory = os_environ.get('PERSIST_DIRECTORY','db')
@@ -19,7 +19,7 @@ text_splitter_parameters = literal_eval(os_environ.get('TEXT_SPLITTER_PARAMETERS
 """
 Initial banner Message
 """
-print("\nPCnewsGPT Wissensimporter V0.1.2.1\n")
+print("\nPCnewsGPT Wissensimporter V0.1.2.2\n")
 
 """
 Map file extensions to document loaders and their arguments
@@ -51,7 +51,7 @@ print(f"Embeddings {embeddings_model_name} werden eingelesen...\n")
 embeddings = HuggingFaceEmbeddings(model_name=embeddings_model_name)
 
 """
-Initialize ChromaDB
+Delete+Initialize ChromaDB
 """
 from langchain.vectorstores import Chroma
 from chromadb.config import Settings as Chroma_Settings
@@ -61,6 +61,8 @@ chroma_settings = Chroma_Settings(
         persist_directory=persist_directory,
         anonymized_telemetry=False
 )
+print(f"{persist_directory} wird gelöscht und neu erzeugt.\n")
+os_system(f'rm -rf {persist_directory}')
 
 """
 parse source_directory for all filenames to load
@@ -176,7 +178,8 @@ for idx,file_path in enumerate(file_paths):
         txt = chunks[i].page_content.replace('\n', ' ') # remove all \n from text
         txt = txt.replace("'", '"')                     # replace single with double quotes
         txt = ' '.join(txt.split())                     # replace multiple spaces with single space
-        txt = chunks[i].page_content
+        if txt != chunks[i].page_content:
+            chunks[i].page_content = txt
         
     # create embeddings and persist
     if db is None:
