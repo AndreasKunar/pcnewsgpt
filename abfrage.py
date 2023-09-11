@@ -57,9 +57,10 @@ llm = Llama(model_path=model_path,
             verbose = model_verbose,
         )
 
-# Central prompt template
-prompt_template = 'Informationen: {}Beantworte die folgende Frage nur mit diesen Informationen. ' + \
-                  'Frage: {}\nAntwort: '
+# Central prompt template (note: substituted context has \n at end)
+prompt_template = '###\nInformationen: {}' + \
+                  'Anweisung: Beantworte die folgende Frage nur mit diesen Informationen.' + \
+                  '\nFrage: {}\nAntwort: '
 
 """
 main query loop - interactive questions and answers until empty line is entered
@@ -104,11 +105,13 @@ while True:
             prompt = prompt,
             max_tokens = max_tokens,
             temperature = model_temp,
+            echo=True,
+            stop=["###"],
             stream = True,
             ):
             for choice in chunk['choices']:
                 print(choice['text'], end='', flush=True)
-        print("",flush=True)
+        #print("",flush=True)
     
     # Print sources
     if not hide_source:

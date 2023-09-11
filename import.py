@@ -20,7 +20,7 @@ text_splitter_parameters = literal_eval(os_environ.get('TEXT_SPLITTER_PARAMETERS
 """
 Initial banner Message
 """
-print("\nPCnewsGPT Wissensimporter V0.1.3\n")
+print("\nPCnewsGPT Wissensimporter V0.1.3.1\n")
 
 """
 Map file extensions to document loaders and their arguments
@@ -108,7 +108,7 @@ def load_file(file_path: str) -> langchain_Document:
         doc = lc_doc[0].page_content   #file_path still holds document source
         # remove line-break hyphenations
         doc = regex_sub(r'-\n+ *', '',doc)
-# remove training spaces in lines
+        # remove training spaces in lines
         doc =doc.replace(' \n', '\n')
         # remove excess spaces
         doc = doc.replace('  ', ' ')
@@ -123,6 +123,7 @@ def load_file(file_path: str) -> langchain_Document:
         doc = doc.replace('(cid:426)', 'ttf')
         doc = doc.replace('(cid:427)', 'tti')
         doc = doc.replace('\uf0b7', '*')
+        doc = doc.replace('•', '*')
         doc = doc.replace('\uf031\uf02e', '1.')
         doc = doc.replace('\uf032\uf02e', '2.')
         doc = doc.replace('\uf033\uf02e', '3.')
@@ -156,8 +157,8 @@ def load_file(file_path: str) -> langchain_Document:
         doc = regex_sub(r'(?<!\n)\n(?!\n)', ' ',doc)
         # change multiple consecutive \n in content to just one \n
         doc = regex_sub(r'\n{2,}', '\n',doc)
-        # remove strange single-characters with optional trailing spaces in lines
-        doc = regex_sub(r'\n\w *\n', '\n',doc)
+        # remove strange single-characters with optional leading and trailing spaces in lines
+        doc = regex_sub(r'\n *(\w|\*) *\n', '\n',doc)
         # remove strange single-characters with spaces inbetween texts
         doc = regex_sub(r'((\w|/|:) +){3,}(\w|/|:)', '',doc)
         # remove multiple blanks
@@ -236,10 +237,12 @@ for idx,file_path in enumerate(file_paths):
             n_chunk += 1
         chunks[i].metadata["source"]= f'{chunks[i].metadata["source"]} (chunk {n_chunk})'
 
-        # final tidying-up of chunk text
+        # final tidying-up of chunk text - needed because of SpaCy weirdnesses
         txt = chunks[i].page_content
-        # remove multiple \n
-        txt = regex_sub(r'\n\n+', '\n',txt)
+        # change single \n in content to " ", but not multiple \n
+        txt = regex_sub(r'(?<!\n)\n(?!\n)', ' ',txt)
+        # change multiple consecutive \n in content to just one \n
+        txt = regex_sub(r'\n{2,}', '\n',txt)
         # replace txt if changed
         if txt != chunks[i].page_content:
             chunks[i].page_content = txt
@@ -264,5 +267,5 @@ if move_from_append:
     os_system(f'mv {append_directory}/* {source_directory}/')
 
 # Statistics
-print(f"Insgesamt {len(file_paths)} Dokument(e) mit {total_chunks} Textteil(en) wurden aus dem Ordner {source_directory} eingelesen.")
+print(f"Insgesamt {len(file_paths)} Dokument(e) mit {total_chunks} Textteil(en) wurden eingelesen.")
 db = None
