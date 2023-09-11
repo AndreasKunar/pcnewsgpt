@@ -28,7 +28,7 @@ hide_source_details = os_environ.get('HIDE_SOURCE_DETAILS',"False") != "False"
 """
 Initial banner Message
 """
-print("\nPCnewsGPT Wissensabfrage V0.2.4\n")
+print("\nPCnewsGPT Wissensabfrage V0.2.5\n")
 
 """
 Initialize Chroma & Embeddings & Collections
@@ -84,13 +84,9 @@ while True:
     # tidy-up tcontext texts
     context = ""
     for i,txt in enumerate(context_texts):
-        txt = txt.replace('\n', '')     # remove all \n from text
-        txt = txt.replace("'", '"')     # replace single with double quotes
-        txt = ' '.join(txt.split())     # replace multiple spaces with single space
-        context_texts[i] = txt
-        # ignore context information which is too far away
-        if context_distances[i] <= max_context_distance:
-            context = context + f"{i+1}. '{txt}'\n"
+        # this assumes, that the context_text items are already cleaned up
+        # concatenate items for prompt
+        context = context + f"{i+1}. '" + txt + "'\n"
 
     # generate LLM prompt only if we have viable context
     if context == "":
@@ -122,6 +118,7 @@ while True:
             if not (context_distances[i] <= max_context_distance):
                 print(", *** ignoriert ***", end="")
             if not hide_source_details:
-                print(f":\n'{context_texts[i]}'")
+                # dont print real \n in source texts
+                print(":\n'"+context_texts[i].replace("\n", "\\n")+"'")
             else:
                 print("")

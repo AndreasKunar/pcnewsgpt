@@ -4,8 +4,9 @@ poetry.lock
 .DS_STORE
 details/*
 
-# source documents content
+# source, append documents content
 source_documents/*
+append_documents/*
 
 # models content
 models/*

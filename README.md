@@ -91,9 +91,12 @@ Diese Installation wurde unter Apple M1/M2 basiertem macOS (in host-OS und VM) u
 ***Vor jedem neuen Start bitte nicht vergessen, die conda Umgebung ggf. über `conda activate pcnewsgpt` zu aktivieren!***
 
 + alle Einstellungen sind in `.env`
-+ `import.py` fürs Wissensbasis Importieren (die alte Datenbank wird dabei gelöscht!)
-  + momentan ist noch kein nachträgliches Erweitern der Wissensdatenbak möglich (geplant als `append.py`)
-+ `abfrage.py` fürs Wissensbasis Abfragen
++ `import.py` fürs ***Wissensbasis Importieren*** 
+  + Wenn eine Wissensdatenbank vorhanden ist, werden die Dateien aus dem `APPEND_DIRECTORY` (definiert in `.env`) dazuimportiert und danach ins `SOURCE_DIRECTORY` (auch definiert in `.env`) verschoben - damit ist jederzeit eine Erweiterung des Wissens möglich!
+  + Sollte keine Wissendatenbenk vorhanden sein, so wird eine leere erzeugt und die Dateien aus `SOURCE_DIRECTORY` importiert
+  + Mit dem Programm `dumpDB` kann der Inhalt der Wissensdatenbank zu Testzwecken ausgelesen werden (Tipp: ggf. redirect der Ausgabe in Analysedatei)
+  + Bei Problemen ggf. bitte das komplette Wissensdatenbankverzeichnis (definiert in `PERSIST_DIRECTORY` in `.env`) löschen und neu importieren
++ `abfrage.py` fürs ***Wissensbasis Abfragen***
 
 ## Offenes/Verbesserungspotenzial
 
@@ -101,16 +104,15 @@ Fehlerberichte und Verbesserungsideen sind willkommen!
 
 ### Importieren
 
-+ `append.py` programmieren, welches zusätzliche Dateien zur bestehenden Wissensdatenbank hinzufügt (bedeutet refactor von `import.py` auf geteilten, wiederverwendbaren code für den eigentlichen Import)
 + Die Qualität der importierten Daten ist für das Ergebnis wesentlich. Hier besteht das größte Verbesserungspotenzial
   + Ev. zusätzliche Zeichenersetzungen für bessere Lesbarkeit finden
-  + Ev. größere chunk-Längen bzw. ev. overlaps - llama-2 hat nun ein 4096 context-limit. Größere chunks bedeuten aber ggf. weniger chunks für die Abfrage, um die Ausführungszeiten vertretbar zu halten. Bedeutet alles keine Programmänderung, sondern nur Parameteränderungen.
+  + Ev. größere/andere chunk-längen bzw. ev. overlaps - llama-2 hat nun ein 4096 context-limit. Größere chunks bedeuten aber ggf. weniger chunks für die Abfrage, um die Ausführungszeiten vertretbar zu halten. Bedeutet alles keine Programmänderung, sondern nur Parameteränderungen.
   + Dokumenthierarchie Parsing wäre Ideal - Benötige aber allgemeingültigen Algorithmus
     + ein analysierbares Inhaltsverzeichnis und das finden der dazugehörigen Seite(n) wäre ideal - Algorithmus?
     + Die PC-news Titelseiten tragen kein Wissen bei, ggehören ev. ignoriert. Algorithmus diese generisch zu finden?
 + Getestet für .PDFs, andere Dateiformate gehören noch ggf. hinzugefügt
 + Die aktuelle Version ist auf Funktion/Qualität/Änderbarkeit optimiert und langsam.
-+ `langchain` ist eigentlich unnötiger overhead, gehört ev. wegoptimiert (so wie in `abfrage.py`) sobald import Funktional "stabilisiert" ist.
++ `langchain` in `import.py` ist eigentlich unnötiger overhead, gehört ev. wegoptimiert (so wie in `abfrage.py`) sobald import Funktional komplett "stabilisiert" ist.
 
 ### Abfragen
 
