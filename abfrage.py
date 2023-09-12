@@ -28,7 +28,7 @@ hide_source_details = os_environ.get('HIDE_SOURCE_DETAILS',"False") != "False"
 """
 Initial banner Message
 """
-print("\nPCnewsGPT Wissensabfrage V0.2.5\n")
+print("\nPCnewsGPT Wissensabfrage V0.2.5.1\n")
 
 """
 Initialize Chroma & Embeddings & Collections
@@ -82,12 +82,13 @@ while True:
     context_distances = result['distances'].__getitem__(0)
     
     # generate LLM prompt
-    # tidy-up tcontext texts
     context = ""
     for i,txt in enumerate(context_texts):
-        # this assumes, that the context_text items are already cleaned up
-        # concatenate items for prompt
-        context = context + f"{i+1}. '" + txt + "'\n"
+        # this assumes, that the context_text items came already cleaned up from the DB
+        # concatenate items for prompt and ignore context information which is too far away
+        if context_distances[i] <= max_context_distance:
+            context = context + f"{i+1}. '{txt}'\n"
+
 
     # generate LLM prompt only if we have viable context
     if context == "":
