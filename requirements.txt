@@ -1,6 +1,6 @@
 pydantic==1.10.12
-nstall chromadb==0.3.23
-install pandas==1.5.3
+chromadb==0.3.23
+pandas==1.5.3
 langchain==0.0.177
 pdfminer.six==20221105
 unstructured==0.6.6
