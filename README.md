@@ -1,10 +1,12 @@
-# PCnewsGPT – eine deutschsprachige KI-basierte Wissensabfrage
+# ![PCnewsGPT](assets/PCnewsGPT%20Logo.png)
 
-Wir verwenden die aktuelle KI wie z.B. chatGPT oft komplett falsch – nämlich als ein Orakel. Ihre eigentliche Stärke ist aber das Verständnis unserer Sprache, und auch das sprachlich gut mit Text antworten zu können. Obwohl die KI große Teile des öffentlichen Internets gelernt hat, ist ihr spezifisches Wissen sehr beschränkt. Sie ist im Wissen sehr auf den angloamerikanischen Sprachraum fokussiert. Und das Wissen ist mit jenem Zeitpunkt eingefroren, zu dem sie fertig angelernt war – ein aktuelles Wissen kennt sie nicht. Und noch schlimmer, die Art wie sie programmiert wurde zwingt sie, auf Fragen immer mit etwas zu antworten – damit etwas zu erfinden bzw. mit etwas komplett Falschem zu halluzinieren.
+*Eine deutschsprachige, KI-basierte Wissensabfrage*
 
-Ein besserer, zuverlässiger Ansatz wäre, dieser sprachgewandten KI eine faktenbasierte Wissensbasis zur Seite zu stellen. Und bei Fragen über dieses Wissen, der KI die passenden Inhalte dieser Wissensbasis als Ausgangsmaterialen zu liefern, sie nur zum Analysieren, Verdichten des Wissens, und zum Formulieren der Antwort zu verwenden. Inklusive dem Hinweis in der Antwort, dass die KI nichts zur Frage Passendes in der Wissensbasis gefunden hat, anstatt unbemerkt zu halluzinieren.
+Wir verwenden die aktuelle KI wie z.B. chatGPT oft komplett falsch – nämlich als ein Orakel. Ihre eigentliche Stärke ist aber das Verständnis unserer Sprache, und auch das sprachlich gut mit Text antworten zu können. Obwohl die KI große Teile des öffentlichen Internets gelernt hat, ist ihr spezifisches Wissen sehr beschränkt. Sie ist im Wissen nämlich sehr auf den angloamerikanischen Sprachraum fokussiert ("Bias"). Und ihr Wissen ist mit jenem Zeitpunkt eingefroren, mit dem sie fertig angelernt war – ein aktuelles Wissen kennt sie nicht. Aber noch schlimmer, die Art wie sie programmiert wurde zwingt sie, auf Fragen immer mit etwas zu antworten – damit oft etwas zu erfinden bzw. mit etwas komplett Falschem zu "halluzinieren".
 
-Das Projekt PCnewsGPT versucht diese Idee in einer speziell auf deutschsprachigen Inhalt abgestimmten Lösung umzusetzen. Und diese Lösung rein auf einem lokalen Computer laufen zu lassen. Damit das Wissen komplett lokal und vertraulich bzw. sicher verarbeitet wird – d.h. ohne öffentlich neues, zukünftiges KI-Lernmaterial mit eventuell vertraulichen, urheberrechtsgeschützten Inhalten zu liefern.
+Ein besserer, zuverlässiger Ansatz wäre, dieser sprachgewandten KI eine faktenbasierte Wissensbasis zur Seite zu stellen. Und bei Fragen über dieses Wissen, der KI die passenden Inhalte dieser Wissensbasis als Ausgangsmaterialen zu liefern. D.h. sie nur zum Analysieren, Verdichten des Wissens, und zum Formulieren der Antwort zu verwenden. Inklusive dem Hinweis in der Antwort, dass die KI nichts zur Frage Passendes in der Wissensbasis gefunden hat, anstatt unbemerkt zu halluzinieren.
+
+Das Projekt PCnewsGPT versucht diese Idee in einer speziell auf deutschsprachigen Inhalt abgestimmten Lösung umzusetzen. Und diese Lösung vollständig auf einem lokalen Computer laufen zu lassen. Damit wird das Wissen komplett lokal und vertraulich bzw. sicher verarbeitet, ohne dem öffentlichen Internet neues KI-Lernmaterial mit ggf. vertraulichen oder urheberrechtsgeschützten Inhalten zu liefern.
 
 PCnewsGPT wurde als Open-Source Python-Programme unter Apache-Lizenz realisiert und ist hier öffentlich verfügbar bzw. jederzeit anpassbar. Der Test erfolgte mit den Inhalten der ClubComputer.at/DigitalSociety.at Clubzeitschrift PC-News (als unredigierte PDFs). Daher der Name "PCnewsGPT".
 
@@ -20,13 +22,16 @@ PCnewsGPT besteht im Wesentlichen aus zwei Python Programmen und einer Konfigura
   + Python Code, orchestriert über das `langchain` KI-Framework
   + Importiert die Dateien mittels `langchain.document_loaders` (nur für Typ .PDF) in einen `langchain.docstore`
   + Räumt PDF Dateien auf (nach Seiten, entfernt Ligaturen,...)
-  + Zerstückeln die importierten Dateien in Wissensfragmente mittels `langchain.text_splitter` und Typ `SpaCy` (speziell optimiert für deutsche Inhalstbedeutung)
-  + Verwendet `langchain.embeddings` und `HuggingFace/SentenceTransformers` zum Generieren der Bedeutungs- bzw. Embedding-Vektoren (auch speziell optimiert für deutsche Inhalstbedeutung)
+  + Zerstückeln die importierten Dateien in Wissensfragmente mittels `langchain.text_splitter` und Typ `SpaCy`. Dabei wird ein speziell für deutsche Inhalstbedeutung optimierter Zusatzalgorithmus verwendet (`de_core_news_lg`).
+  + Verwendet `langchain.embeddings` und `HuggingFace/SentenceTransformers` zum Generieren der Bedeutungs- bzw. Embedding-Vektoren. Auch hier mit einem speziell für internationale Inhalstbedeutung optimiertem Modell (`paraphrase-multilingual-mpnet-base-v`).
   + Verwendet `langchain.vectorstores` und `chromaDB` als Wissensdatenbank/Vektor-DB
+
 + `abfrage.py` - KI-Abfrage dieser Wissensdatenbank mittels lokalem LLaMa-basiertem KI Modell
   + Verwendet die vom Import generierten Wissensbasis in der `chroma` Vektordatenbank
   + Verwendet die gleichen `HuggingFace/SentenceTransformers` zum Generieren der Bedeutungs- bzw. Embedding-Vektoren für die Benutzerfrage wie der Import. Mit diesen Vektoren wird in der DB nach dazu passenden Context-Inhalten gesucht
   + Verwendet `llama.cpp` und ein auf llama basiertes KI Modell als KI Sprachmodell. Mit einem "promp" bestehend aus den Contexttexten und der Frage sowie generellen Anweisungen.
+  + [OpenBuddy](https://openbuddy.ai) sind speziell für Multilinguale Anwendungen entwickelte KI-Modelle
+
 + `.env` - Konfigurationsdatei
   + Alle Parameter können auch als Environment-Variables übergeben werden bzw. haben gute Defaults
 
@@ -79,7 +84,7 @@ Diese Installation wurde unter Apple M1/M2 basiertem macOS (in host-OS und VM) u
 
     + Bei der ersten Ausführung laden die `SentenceTransformers` entsprechende Dateien/Modelle selbstätig aus dem Internet herunter. Ab dann ist die Lösung voll Offlinefähig.
 
-5. Nur falls in dieser Installation auch `import.py` ausgeführt werden soll (die Abfrage alleine ist simpler), die nötige Python Bibliotheken dafür in der jeweiligen passenden Version installieren.
+5. Falls in dieser Installation auch `import.py` ausgeführt werden soll (die Abfrage alleine ist simpler und benötigt weniger Python-Bibliotheken), die nötige Bibliotheken dafür in der jeweiligen passenden Version installieren.
 
     ```shell
     pip install -r requirements.txt
@@ -91,11 +96,13 @@ Diese Installation wurde unter Apple M1/M2 basiertem macOS (in host-OS und VM) u
 ***Vor jedem neuen Start bitte nicht vergessen, die conda Umgebung ggf. über `conda activate pcnewsgpt` zu aktivieren!***
 
 + alle Einstellungen sind in `.env`
+
 + `import.py` fürs ***Wissensbasis Importieren***
   + Wenn eine Wissensdatenbank vorhanden ist, werden die Dateien aus dem `APPEND_DIRECTORY` (definiert in `.env`) dazuimportiert und danach ins `SOURCE_DIRECTORY` (auch definiert in `.env`) verschoben - damit ist jederzeit eine Erweiterung des Wissens möglich!
   + Sollte keine Wissendatenbenk vorhanden sein, so wird eine leere erzeugt und die Dateien aus `SOURCE_DIRECTORY` importiert
   + Mit dem Programm `dumpDB` kann der Inhalt der Wissensdatenbank zu Testzwecken ausgelesen werden (Tipp: ggf. redirect der Ausgabe in Analysedatei)
   + Bei Problemen ggf. bitte das komplette Wissensdatenbankverzeichnis (definiert in `PERSIST_DIRECTORY` in `.env`) löschen und neu importieren
+
 + `abfrage.py` fürs ***Wissensbasis Abfragen***
 
 ## Offenes/Verbesserungspotenzial
