@@ -5,3 +5,4 @@ langchain==0.0.177
 pdfminer.six==20221105
 unstructured==0.6.6
 spacy==3.6.1
+PyMuPDF==1.23.3
