@@ -24,7 +24,7 @@ loaders = [
 """
 Initial banner Message
 """
-print("\nPCnewsGPT Vergleich PDF-Importer V0.1\n")
+print("\nPCnewsGPT PDF-Importer im Vergleich V0.1\n")
 
 """
 Load and convert file_path into a langchain document
