@@ -22,7 +22,11 @@ text_splitter_parameters = literal_eval(os_environ.get('TEXT_SPLITTER_PARAMETERS
 """
 Initial banner Message
 """
+<<<<<<< HEAD
 print("\nPCnewsGPT Wissensimporter V0.1.5.1\n")
+=======
+print("\nPCnewsGPT Wissensimporter V0.1.5\n")
+>>>>>>> 17aed3113d220e857f47494a33a70189b40eec38
 
 """
 PDF-Import via PyMuPDF with some more processing, 
@@ -244,6 +248,16 @@ append_paths = []
 append_paths.extend(
     glob(os_path.join(append_directory, f"**/*.pdf"), recursive=True)
 )
+<<<<<<< HEAD
+=======
+
+"""
+Load and convert file_path into a langchain document
+"""
+def load_file(file_path: str) -> Langchain_Document:
+    ext = "." + file_path.rsplit(".", 1)[-1]
+    return myPDFLoader(file_path)
+>>>>>>> 17aed3113d220e857f47494a33a70189b40eec38
 
 """
 Load + process all documents
@@ -272,6 +286,7 @@ else:
 db = None
 total_pages=0
 total_chunks=0
+<<<<<<< HEAD
 for file_num,file_path in enumerate(file_paths):
     # import one document's pages
     print(f"Datei {file_path} ({file_num+1}/{len(file_paths)})...")
@@ -280,6 +295,29 @@ for file_num,file_path in enumerate(file_paths):
     total_pages += num_pages
     docs = []                       # langchain documents for DB
     print(f"... wurde eingelesen und in {num_pages} Seite(n) umgewandelt ...")
+=======
+for idx,file_path in enumerate(file_paths):
+    print(f"Datei {file_path} ({idx+1}/{len(file_paths)})...")
+    documents=load_file(file_path)                  # txt as 1 document, pdfs as 1 document per page
+    pages=len(documents)
+    total_pages += pages
+    print(f"... wurde eingelesen und in {pages} Seite(n) umgewandelt ...")
+    # Split into chunks of text
+    chunks = text_splitter.split_documents(documents) if len(documents) > 0 else []
+    print(f"... zerteilt auf {len(chunks)} Textteil(e) ...")
+    total_chunks += len(chunks)
+    # tidying-up chunk text and numbering of chunks per source
+    n_chunk=1
+    chunk_metadata=chunks[0].metadata
+    for i in range(len(chunks)):
+        # new chunk begins if metadata is different
+        if chunk_metadata!=chunks[i].metadata:
+            n_chunk=1
+            chunk_metadata=chunks[i].metadata
+        else:
+            n_chunk += 1
+        chunks[i].metadata.update({"chunk": f"{n_chunk}"})
+>>>>>>> 17aed3113d220e857f47494a33a70189b40eec38
 
     # for each page in the document
     num_chunks_in_doc=0
