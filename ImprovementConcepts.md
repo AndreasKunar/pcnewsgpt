@@ -2,6 +2,10 @@
 
 Collecting Technology-Ideas for for PCnewsGPT Improvements
 
+## Semantic Web and AI
+
+[Source](https://towardsdatascience.com/what-happened-to-the-semantic-web-cbaaf547a09f)
+
 ## Document Sections: Better rendering of chunks for long documents
 
 [Source](https://community.openai.com/t/document-sections-better-rendering-of-chunks-for-long-documents/329066)

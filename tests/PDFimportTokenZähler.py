@@ -1,32 +1,49 @@
 """
-*** PCnewsGPT Hilfsprogramm: PDF-Importervergleich ***
+*** PCnewsGPT Hilfsprogramm: PDF Test Tokenlänge per Seite ***
 """
 
-#zu test-importierende Datei
-file_path = "source_documents/n178.pdf"
+"""
+Load Parameters, etc.
+"""
+from dotenv import load_dotenv
+from os import environ as os_environ
+load_dotenv()
+model_path = os_environ.get('MODEL_PATH','llama-2-13b-chat.ggmlv3.q4_0.bin')
+model_n_ctx = int(os_environ.get('MODEL_N_CTX',2048))
+model_temp = float(os_environ.get('MODEL_TEMP',0.4))
+max_tokens = int(os_environ.get('MAX_TOKENS',500))
+model_threads = int(os_environ.get('MODEL_THREADS',8))
+model_n_gpu = int(os_environ.get('MODEL_GPU',1))
+max_context_chunks = int(os_environ.get('MAX_CONTEXT_CHUNKS',4))
+source_directory = os_environ.get('SOURCE_DIRECTORY','source_documents')
 
-# zu testende Loader
+# PDFLoader
 from langchain.document_loaders import (
-    PyPDFLoader,
-    UnstructuredPDFLoader,
-    PDFMinerLoader,
-    PyPDFium2Loader,
     PyMuPDFLoader,
 )
-loaders = [
-#    (UnstructuredPDFLoader, {'mode':'elements'}),
-#    (PyPDFLoader,{}),
-#    (PDFMinerLoader,{}),
-#    (PyPDFium2Loader,{}),
-    (PyMuPDFLoader,{}),
-    ]
+loader_class = PyMuPDFLoader
+loader_args = {}
 
 """
 Initial banner Message
 """
-print("\nPCnewsGPT PDF-Importer im Vergleich V0.1\n")
+print("\nPCnewsGPT Tokenlänge per PDF-Seite V0.1\n")
 
 """
+Initialize LLM
+"""
+print(f"KI-Model {model_path} wird geladen...\n")
+from llama_cpp import Llama
+llm = Llama(model_path=model_path,
+            n_ctx=int(model_n_ctx*1.5),
+            logits_all=False, 
+            embedding = False,
+            n_threads = model_threads,
+            n_gpu_layers = model_n_gpu,
+            verbose = False,
+        )
+"""
+
 Load and convert file_path into a langchain document
 """
 from langchain.docstore.document import Document as langchain_Document
@@ -140,10 +157,18 @@ def load_file(file_path: str, loader_class, loader_args) -> langchain_Document:
 
 
 """
-process file with all loaders
+process all files in import directory
 """
-for idx,loader in enumerate(loaders):
-    loader_class, loader_args = loader
-    print(f"*** File {file_path}, processed with {loader_class.__name__} ***:")
-    documents=load_file(file_path, loader_class, loader_args)
-    print(documents,end="\n\n")
+from glob import glob
+from os import path as os_path
+for file_path in glob(os_path.join(source_directory, f"**/*.pdf"), recursive=True):
+    # load a file
+    document=load_file(file_path, loader_class, loader_args)
+
+    # process its pages
+    for pg_num, page in enumerate(document):
+        # tokenize 
+        tokens=llm.tokenize(str(page.page_content).encode('utf-8'),add_bos=False)
+        # only print if too long
+        if len(tokens) > (model_n_ctx/1.8):   # assumptions: result-length = 80% of page-length
+            print(f"File {file_path}  Page:{pg_num+1} WARNUNG Tokens:{len(tokens)}")

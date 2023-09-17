@@ -78,7 +78,7 @@ while True:
         n_results=max_context_chunks
     )
     context_texts = result['documents'].__getitem__(0)
-    context_sources = [dct['source'] for dct in result['metadatas'].__getitem__(0)] 
+    context_metadatas = result['metadatas'].__getitem__(0) 
     context_distances = result['distances'].__getitem__(0)
     
     # generate LLM prompt
@@ -117,12 +117,14 @@ while True:
     # Print sources
     if not hide_source:
         print(f"\n### Quellen:")
-        for i,source in enumerate(context_sources):
-            print(f"[{i+1}] {source}, Distanz={context_distances[i]:.2f}", end="")
-            if not (context_distances[i] <= max_context_distance):
-                print(", *** ignoriert ***", end="")
-            if not hide_source_details:
+        for i,metadata in enumerate(context_metadatas):
+            if (context_distances[i] <= max_context_distance):
+                print(f"[{i+1}] {metadata.get('source')} Seite:{metadata.get('page','-')} Textteil:{metadata.get('chunk','-')} Distanz:{context_distances[i]:.2f}", end="")
+                if not hide_source_details:
                 # dont print real \n in source texts
-                print(":\n'"+context_texts[i].replace("\n", "\\n")+"'")
+                    print(":\n'"+context_texts[i].replace("\n", "\\n")+"'")
+                else:
+                    print("")
             else:
-                print("")
+                print(f"[{i+1}] Ignoriert:{metadata.get('source')} Seite:{metadata.get('page','-')} Textteil:{metadata.get('chunk','-')} Distanz:{context_distances[i]:.2f}")
+
