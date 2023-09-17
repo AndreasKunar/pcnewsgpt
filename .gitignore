@@ -2,7 +2,6 @@
 .vscode/*
 poetry.lock
 .DS_STORE
-details/*
 
 # source, append documents content
 source_documents/*

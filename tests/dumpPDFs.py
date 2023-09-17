@@ -1,8 +1,5 @@
 """
-*** PCnewsGPT Wissensimporter - import.py ***
-    Änderung: V0.1.5.x - PyMuPDF direkt eingebunden
-    Änderung: V0.1.4.x - PyMuPDFLoader ersetzt pdfMiner.six
-    Änderung: V0.1.3.x - append als funktion, besser lesbare, verständliche chunk-texte
+*** PCnewsGPT Hilfsprogramm: Inhaltsausgabe PDFs im Importverzeichnis ***
 """
 
 """
@@ -12,17 +9,12 @@ from dotenv import load_dotenv
 from os import environ as os_environ
 from ast import literal_eval
 load_dotenv()
-persist_directory = os_environ.get('PERSIST_DIRECTORY','db')
-embeddings_model_name = os_environ.get('EMBEDDINGS_MODEL_NAME','paraphrase-multilingual-mpnet-base-v2')
 source_directory = os_environ.get('SOURCE_DIRECTORY','source_documents')
-append_directory = os_environ.get('APPEND_DIRECTORY','append_documents')
-text_splitter_name = os_environ.get('TEXT_SPLITTER','RecursiveCharacterTextSplitter')
-text_splitter_parameters = literal_eval(os_environ.get('TEXT_SPLITTER_PARAMETERS','{"chunk_size": 500, "chunk_overlap": 50}'))
 
 """
 Initial banner Message
 """
-print("\nPCnewsGPT Wissensimporter V0.1.5.1\n")
+print("\nPCnewsGPT dump PDFs aus importverzeichnis V0.1\n")
 
 """
 PDF-Import via PyMuPDF with some more processing, 
@@ -98,6 +90,11 @@ def myPDFLoader (fname) -> Langchain_Document:
                                     PyMuPDF.TEXT_MEDIABOX_CLIP, 
                                     sort=False)
                 
+                """debug:
+                print( {**doc_metadata, **{'page':page.number+1}},end=", text='")
+                print(text.replace("\n", "\\n"),end="',\n")
+                """
+
                 # *** ignore pages with less than 100 characters
                 if len(text) < 80:
                     print(f"{fname} Seite:{page.number+1} ignoriert, da kein brauchbarer Text ({len(text)} Zechen)")
@@ -193,137 +190,22 @@ def myPDFLoader (fname) -> Langchain_Document:
     return return_docs
 
 """
-Initialize Text Splitter
-"""
-# dynamically import the langchain text splitter class and instantiate it
-from importlib import import_module
-text_splitter_module = import_module("langchain.text_splitter")
-TextSplitter = getattr(text_splitter_module, text_splitter_name)
-text_splitter = TextSplitter(**text_splitter_parameters)
-
-"""
-Initialize Embeddings
-"""
-from langchain.embeddings import HuggingFaceEmbeddings
-print(f"Embeddings {embeddings_model_name} werden eingelesen...\n")
-embeddings = HuggingFaceEmbeddings(model_name=embeddings_model_name)
-
-"""
-Initialize ChromaDB
-"""
-from langchain.vectorstores import Chroma
-from chromadb.config import Settings as Chroma_Settings
-# Define the Chroma settings
-chroma_settings = Chroma_Settings(
-        chroma_db_impl='duckdb+parquet',
-        persist_directory=persist_directory,
-        anonymized_telemetry=False
-)
-
-"""
-Checks if ChromaDB exists
+parse source_directory 
 """
 from os import system as os_system, path as os_path
 from glob import glob
-def does_db_exist() -> bool:
-    if os_path.exists(os_path.join(persist_directory, 'index')):
-        if os_path.exists(os_path.join(persist_directory, 'chroma-collections.parquet')) and os_path.exists(os_path.join(persist_directory, 'chroma-embeddings.parquet')):
-            list_index_files = glob(os_path.join(persist_directory, 'index/*.bin'))
-            list_index_files += glob(os_path.join(persist_directory, 'index/*.pkl'))
-            return True
-    return False
-
-"""
-parse source_directory (for full import) + append_directory for all filenames to load
-"""
-full_import_paths = []
-full_import_paths.extend(
+file_paths = []
+file_paths.extend(
     glob(os_path.join(source_directory, f"**/*.pdf"), recursive=True)
-)
-append_paths = []
-append_paths.extend(
-    glob(os_path.join(append_directory, f"**/*.pdf"), recursive=True)
 )
 
 """
 Load + process all documents
 """
-# decide if we append to existing db or create a new one
-if does_db_exist():
-    if len(append_paths) > 0:
-        print(f"Dokumentdateien in {append_directory} werden eingelesen und verarbeitet...\n")
-        create_db = False
-        file_paths = append_paths
-        move_from_append = True
-    else:
-        print(f"Es existiert bereits eine Wissensdatenbank in {persist_directory}.\n")
-        print(f"Um Dokumente hinzuzufügen, lege diese im Ordner {append_directory} ab und starte den Import erneut.\n")
-        print(f"Um eine neue Wissensdatenbank anzulegen, lösche den Ordner {persist_directory} und starte den Import erneut.\n")
-        exit()
-else:
-    print(f"{persist_directory} wird gelöscht und neu erzeugt.\n")
-    os_system(f'rm -rf {persist_directory}')
-    print(f"Dokumentdateien in {source_directory} werden eingelesen und verarbeitet...\n")
-    create_db = True
-    file_paths = full_import_paths
-    move_from_append = False
+print(f"Dokumentdateien in {source_directory} werden eingelesen und verarbeitet...\n")
 
 # process all documents
-db = None
-total_pages=0
-total_chunks=0
-for file_num,file_path in enumerate(file_paths):
-    # import one document's pages
-    print(f"Datei {file_path} ({file_num+1}/{len(file_paths)})...")
-    pages=myPDFLoader(file_path)    # as langchain documents
-    num_pages=len(pages)
-    total_pages += num_pages
-    docs = []                       # langchain documents for DB
-    print(f"... wurde eingelesen und in {num_pages} Seite(n) umgewandelt ...")
-
-    # for each page in the document
-    num_chunks_in_doc=0
-    for page in pages:
-        # split this pages into chunks of text, and process each chunk
-        chunks = text_splitter.split_documents([page])
-        num_chunks_in_doc += len(chunks)
-        for chunk_num, chunk in enumerate(chunks):
-            # add metadata for each chunk
-            chunk_metadata={**chunk.metadata,**{"chunk": chunk_num+1}}
-            # final tidying-up of chunk text - needed because of SpaCy weirdnesses
-            txt = chunk.page_content
-            # change single \n in content to " ", but not multiple \n
-            txt = regex_sub(r'(?<!\n)\n(?!\n)', ' ',txt)
-            # change multiple consecutive \n in content to just one \n
-            txt = regex_sub(r'\n{2,}', '\n',txt)
-            # if we have a remaining text in the chunk -> add to docs
-            if len(txt) > 0:
-                docs.append(Langchain_Document(
-                    metadata = chunk_metadata,
-                    page_content = txt,
-                ))
-    # statistics per document
-    print(f"... zerteilt auf {num_chunks_in_doc} Textteil(e) ...")
-    total_chunks += num_chunks_in_doc
-    # create embeddings and persist
-    if db is None:
-        # create or append-to db
-        if create_db:
-            db = Chroma.from_documents(docs, embeddings, persist_directory=persist_directory, client_settings=chroma_settings)
-        else:
-            db = Chroma(persist_directory=persist_directory, embedding_function=embeddings, client_settings=chroma_settings)
-            db.add_documents(docs)
-    else:
-        # add to existing db
-        db.add_documents(docs)
-    db.persist()
-    print("... und in der Wissensdatenbank gespeichert.\n")
-
-# move files from append_directory to source_directory after finishing import
-if move_from_append:
-    print(f"Verschiebe alle Dateien aus {append_directory} nach {source_directory}...\n")
-    os_system(f'mv {append_directory}/* {source_directory}/')
-
-# Statistics
-print(f"Insgesamt {len(file_paths)} Dokument(e) mit {total_pages} Seite(n) und {total_chunks} Textteil(en) wurden eingelesen.\n")
-db = None
+for idx,file_path in enumerate(file_paths):
+    documents=myPDFLoader(file_path)                  # txt as 1 document, pdfs as 1 document per page
+    for document in documents:
+        print(document)

@@ -2,7 +2,6 @@ pydantic==1.10.12
 chromadb==0.3.23
 pandas==1.5.3
 langchain==0.0.177
-pdfminer.six==20221105
 unstructured==0.6.6
 spacy==3.6.1
 PyMuPDF==1.23.3

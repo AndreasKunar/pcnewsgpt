@@ -20,8 +20,8 @@ PCnewsGPT besteht im Wesentlichen aus zwei Python Programmen und einer Konfigura
 
 + `import.py` - importieren der PC-News PDF Dateien in eine lokale Wissensdatenbank
   + Python Code, orchestriert über das `langchain` KI-Framework
-  + Importiert die Dateien mittels `langchain.document_loaders` (nur für Typ .PDF) in einen `langchain.docstore`
-  + Räumt PDF Dateien auf (nach Seiten, entfernt Ligaturen,...)
+  + Importiert die Dateien mittels `PyMuPDF` (nur für Typ .PDF) in einen `langchain.docstore`
+  + Räumt PDF Dateien auf (nach Seiten, ignoriert Leerseiten/Bildseiten, entfernt Ligaturen,...)
   + Zerstückeln die importierten Dateien in Wissensfragmente mittels `langchain.text_splitter` und Typ `SpaCy`. Dabei wird ein speziell für deutsche Inhalstbedeutung optimierter Zusatzalgorithmus verwendet (`de_core_news_lg`).
   + Verwendet `langchain.embeddings` und `HuggingFace/SentenceTransformers` zum Generieren der Bedeutungs- bzw. Embedding-Vektoren. Auch hier mit einem speziell für internationale Inhalstbedeutung optimiertem Modell (`paraphrase-multilingual-mpnet-base-v`).
   + Verwendet `langchain.vectorstores` und `chromaDB` als Wissensdatenbank/Vektor-DB
@@ -100,7 +100,8 @@ Diese Installation wurde unter Apple M1/M2 basiertem macOS (in host-OS und VM) u
 + `import.py` fürs ***Wissensbasis Importieren***
   + Wenn eine Wissensdatenbank vorhanden ist, werden die Dateien aus dem `APPEND_DIRECTORY` (definiert in `.env`) dazuimportiert und danach ins `SOURCE_DIRECTORY` (auch definiert in `.env`) verschoben - damit ist jederzeit eine Erweiterung des Wissens möglich!
   + Sollte keine Wissendatenbenk vorhanden sein, so wird eine leere erzeugt und die Dateien aus `SOURCE_DIRECTORY` importiert
-  + Mit dem Programm `dumpDB` kann der Inhalt der Wissensdatenbank zu Testzwecken ausgelesen werden (Tipp: ggf. redirect der Ausgabe in Analysedatei)
+  + Grafikseiten oder Seiten mit zu wenig Text (weniger als 80 Zeichen) werden ignoriert
+  + Mit dem Programm `dumpDB` in `./tests/` kann der Inhalt der Wissensdatenbank zu Testzwecken ausgelesen werden (Tipp: ggf. redirect der Ausgabe in Analysedatei)
   + Bei Problemen ggf. bitte das komplette Wissensdatenbankverzeichnis (definiert in `PERSIST_DIRECTORY` in `.env`) löschen und neu importieren
 
 + `abfrage.py` fürs ***Wissensbasis Abfragen***
@@ -114,18 +115,22 @@ Das Hauptproblem der verwendeten Methode (RAG) ist Garbage-in-Garbage-out, d.h. 
 + Markieren des Ursprungsdatums der Datenquelle. Damit neuere Daten bei der Abfrage höher gewichten, und nicht mehr aktuelle Daten eher ignorieren.
 + [Improving Retrieval-Augmented Large Language Models via Data Importance Learning](https://arxiv.org/pdf/2307.03027.pdf)
 + [Improving RAG Answer Quality with Re-ranker](https://medium.com/towards-generative-ai/improving-rag-retrieval-augmented-generation-answer-quality-with-re-ranker-55a19931325)
++ ThirdAI's NeuralDB Idee als Alternative zu Vector DB:
+  + [Limitations of Vector-Based Retrieval for RAG (1/3)](https://medium.com/thirdai-blog/understanding-the-fundamental-limitations-of-vector-based-retrieval-for-building-llm-powered-48bb7b5a57b3)
+  + [Neural Databases - Learning to Index (2/3)](https://medium.com/thirdai-blog/neural-database-next-generation-context-retrieval-system-for-building-specialized-ai-agents-with-861ffa0516e7)
+  + [ThirdAI NeuralDB RAG (3/3)](https://medium.com/thirdai-blog/thirdais-private-and-personalizable-neural-database-enhancing-retrieval-augmented-generation-f3ad52c54952)
+  + [Andrej Karpathy on how he found SVM-based similarity maybe to be better](https://twitter.com/karpathy/status/1647025230546886658)
+  + [Meta's Neural Databases](https://www.marktechpost.com/2021/08/26/facebook-ai-introduces-neural-databases-a-new-approach-which-enables-machines-to-search-unstructured-data-and-connect-the-fields-of-databases-and-nlp/)[github](https://github.com/facebookresearch/NeuralDB?)
 + [Meine `ImprovementConcepts.md` Sammlung](./ImprovementConcepts.md)
 
 ### Verbesserungsideen Import
 
 + Datenqualitätsverbesserungen
+  + Dokumenthierarchie Parsing wäre Ideal - Benötige aber allgemeingültigen Algorithmus (momentan in Arbeit)
+    + ein analysierbares Inhaltsverzeichnis und das finden der dazugehörigen Seite(n) wäre ideal - Algorithmus?
   + Ev. zusätzliche Zeichenersetzungen für bessere Lesbarkeit finden
   + Ev. optimieren der chunk-längen, overlaps und max_content_chunks - keine Programmänderung, sondern nur Parameteränderungen.
-  + Dokumenthierarchie Parsing wäre Ideal - Benötige aber allgemeingültigen Algorithmus
-    + ein analysierbares Inhaltsverzeichnis und das finden der dazugehörigen Seite(n) wäre ideal - Algorithmus?
-    + Die PC-news Titelseiten tragen kein Wissen bei, ggehören ev. ignoriert. Algorithmus diese generisch zu finden?
 + Getestet für .PDFs, andere Dateiformate gehören noch ggf. hinzugefügt
-
 + Die aktuelle Version ist auf Funktion/Qualität/Änderbarkeit optimiert und langsam.
 + `langchain` in `import.py` ist eigentlich unnötiger overhead, gehört ev. wegoptimiert (so wie in `abfrage.py`) sobald import Funktional komplett "stabilisiert" ist.
 
