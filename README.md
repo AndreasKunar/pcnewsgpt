@@ -19,21 +19,35 @@ KI-Wissensabfrage von lokal gespeicherten PDF-Dateien mittels [Retrieval Augment
 PCnewsGPT besteht im Wesentlichen aus zwei Python Programmen und einer Konfigurationsdatei:
 
 + `import.py` - importieren der PC-News PDF Dateien in eine lokale Wissensdatenbank
-  + Python Code, orchestriert über das `langchain` KI-Framework
-  + Importiert die Dateien mittels `PyMuPDF` (nur für Typ .PDF) in einen `langchain.docstore`
-  + Räumt PDF Dateien auf (nach Seiten, ignoriert Leerseiten/Bildseiten, entfernt Ligaturen,...)
-  + Zerstückeln die importierten Dateien in Wissensfragmente mittels `langchain.text_splitter` und Typ `SpaCy`. Dabei wird ein speziell für deutsche Inhalstbedeutung optimierter Zusatzalgorithmus verwendet (`de_core_news_lg`).
-  + Verwendet `langchain.embeddings` und `HuggingFace/SentenceTransformers` zum Generieren der Bedeutungs- bzw. Embedding-Vektoren. Auch hier mit einem speziell für internationale Inhalstbedeutung optimiertem Modell (`paraphrase-multilingual-mpnet-base-v`).
-  + Verwendet `langchain.vectorstores` und `chromaDB` als Wissensdatenbank/Vektor-DB
+  + Derzeit orchestriert über das `langchain` KI-Framework
+  + Importiert die Dateien als einzelne Textseiten + Metadaten
+    + Derzeit derzeit nur für Dateityp .pdf (mittels `PyMuPDF`)
+    + Räumt dabei den Rohtext für bessere Lesbarkeit auf. z.B. unterteilt nach Seiten, ignoriert Leerseiten/Bildseiten, entfernt Ligaturen,...
+    + ***Optimierungspotenzial:*** "Print to PDF" erzeugte Dateien speichern im hinterlegten Text alle Ligaturen als das selbe Sonderzeichen. Dieser Text muss für die häufigtstverwendeten Wörter über Tabellen in korrekten Text umgewandelt werden. Die dafür nötige Tabelle muss noch erweitert werden.
+    + ***Erweiterungspotenzial:*** ergänzen um Dateitypen .txt, .doc,...
+  + Analysiert und zerteilt die importierten Texte in Wissensfragmente mittels `SpaCy`
+    + Mit max. Längenvorgabe je Wissensfragment
+    + Es wird ein speziell für deutsche Inhalstbedeutung optimierter Zusatzalgorithmus verwendet (`de_core_news_lg`)
+    + Metadaten bleiben erhalten bzw. werden ergänzt
+    + ***Optimierungspotenzial:*** Textseiten per verbesserter `SpaCy`-Pipeline besser auf konsitente Wissensfragmente zerlegen
+  + Verwendet `HuggingFace/SentenceTransformers` zum Generieren der Bedeutungs- bzw. Embedding-Vektoren. 
+    + Auch hier mit einem speziell für internationale Inhalstbedeutung optimiertem Modell (`paraphrase-multilingual-mpnet-base-v`).
+  + Verwendet `chromaDB` als Wissensbasis Datenbank/Vektor-DB zum Speichern der Embedding-Vektoren und Wissensfragmente (Text + Metadaten)
+    + mit eingebetteter `duckDB` als relationaler DB
+  + Zwei Betriebsarten - Initialimport der Datenbank und nachträgliches Hinzufügen von Inhalten
 
-+ `abfrage.py` - KI-Abfrage dieser Wissensdatenbank mittels lokalem LLaMa-basiertem KI Modell
-  + Verwendet die vom Import generierten Wissensbasis in der `chroma` Vektordatenbank
-  + Verwendet die gleichen `HuggingFace/SentenceTransformers` zum Generieren der Bedeutungs- bzw. Embedding-Vektoren für die Benutzerfrage wie der Import. Mit diesen Vektoren wird in der DB nach dazu passenden Context-Inhalten gesucht
-  + Verwendet `llama.cpp` und ein auf llama basiertes KI Modell als KI Sprachmodell. Mit einem "promp" bestehend aus den Contexttexten und der Frage sowie generellen Anweisungen.
-  + [OpenBuddy](https://openbuddy.ai) sind speziell für Multilinguale Anwendungen entwickelte KI-Modelle
++ `abfrage.py` - KI-Abfrage dieser Wissensdatenbank mittels lokalem KI Modell
+  + Verwendet die vom Import generierten Wissensbasis in der `chromaDB` Vektordatenbank und die gleichen Embeddingalgorithmen
+    + Die Benutzerfrage wird in einen Embedding-Vektor umgewandelt, und mit diesem Vektor wird in der DB nach zur Benutzerfrage passenden Context-Inhalten gesucht. Die Datenbank liefert die besten n (konfigurierbar) passenden Wissensfragmente, inkl. einer Distanzangabe. Zu weit wegliegende Ergebnisse werden ignoriert.
+  + Verwendet `llama.cpp` und ein lokales KI Sprachmodell
+    + Das Generieren der Antwort erfolgt mit einem "prompt" bestehend aus den dazupassenden Contexttexten der Wissensdatenbank und der Benutzerfrage sowie generellen Anweisungen. Die generellen Anweisungen verhindern, daß die KI eigene Fakten generiert und sich an den Wissenskontext halten soll.
+    + Verwendet [OpenBuddy](https://openbuddy.ai) als speziell für Multilinguale Anwendungen entwickeltes KI-Modell
 
 + `.env` - Konfigurationsdatei
-  + Alle Parameter können auch als Environment-Variables übergeben werden bzw. haben gute Defaults
+  + Alle Parameter können alternativ auch als Environment-Variables übergeben werden
+  + ***Die Parameter MODEL_THREADS (Anzahl CPUs), MODEL_GPU (1 für Apple-GPU oder Anzahl verwendeter GPU-Kerne) und MODEL_PROMPT_PER_S (Geschwindigkeitsschätzung) müssen ggf. an den verwendeten Rechner angepasst werden.***
+  + Die Parameter HIDE_SOURCE und HIDE_SOURCE_DETAILS sind fürs Testen, welches Wissen verwendet wurde
+
 
 ## Installation
 
@@ -112,6 +126,7 @@ Das Hauptproblem der verwendeten Methode (RAG) ist Garbage-in-Garbage-out, d.h. 
 
 <ins>Ideen/Papers dazu:</ins>
 
++ [Don’t make this “data mess” mistakes with Langchain and RAG](https://medium.com/@meta_heuristic/dont-make-this-data-mess-mistakes-with-langchain-and-rag-a07f813c21e9)
 + Markieren des Ursprungsdatums der Datenquelle. Damit neuere Daten bei der Abfrage höher gewichten, und nicht mehr aktuelle Daten eher ignorieren.
 + [Improving Retrieval-Augmented Large Language Models via Data Importance Learning](https://arxiv.org/pdf/2307.03027.pdf)
 + [Improving RAG Answer Quality with Re-ranker](https://medium.com/towards-generative-ai/improving-rag-retrieval-augmented-generation-answer-quality-with-re-ranker-55a19931325)
@@ -126,15 +141,11 @@ Das Hauptproblem der verwendeten Methode (RAG) ist Garbage-in-Garbage-out, d.h. 
 ### Verbesserungsideen Import
 
 + Datenqualitätsverbesserungen
-  + Dokumenthierarchie Parsing wäre Ideal - Benötige aber allgemeingültigen Algorithmus (momentan in Arbeit)
-    + ein analysierbares Inhaltsverzeichnis und das finden der dazugehörigen Seite(n) wäre ideal - Algorithmus?
-  + Ev. zusätzliche Zeichenersetzungen für bessere Lesbarkeit finden
+  + Ev. Dokumentenanalyse mit LLM vor dem import - siehe Beispiele in `./tests`
   + Ev. optimieren der chunk-längen, overlaps und max_content_chunks - keine Programmänderung, sondern nur Parameteränderungen.
-+ Getestet für .PDFs, andere Dateiformate gehören noch ggf. hinzugefügt
 + Die aktuelle Version ist auf Funktion/Qualität/Änderbarkeit optimiert und langsam.
-+ `langchain` in `import.py` ist eigentlich unnötiger overhead, gehört ev. wegoptimiert (so wie in `abfrage.py`) sobald import Funktional komplett "stabilisiert" ist.
++ `langchain` in `import.py` ist eigentlich unnötiger overhead, gehört ev. wegoptimiert (so wie in `abfrage.py`) 
 
 ### Verbesserungsideen Abfrage
 
 + Der "prompt" soll Halluzinationen vermeiden und kurz sein - es gibt dafür leider keine dt. Vorlagen/Ideen
-+ Das initiale Analysieren des mit jeder Frage neu generierten "prompt" and die KI durch llama.cpp dauert ziemlich lang und ist ohne Fortschrittsanzeige (deshalb das "Antwort - bitte um etwas Geduld"). Ev. gibts hier Methoden einer Fortschrittsanzeige.

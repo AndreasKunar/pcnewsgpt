@@ -1,7 +1,16 @@
 """
 *** PCnewsGPT Abfrage - abfrage.py ***
-    Änderung: V0.2.x ist eine komplette Neuadaption von V0.1, völlig OHNE langchain und mit optimiertem Abfragetext
+
+    Änderungen: 
+    V0.2.5.x - Opimieren question-Vorverarbeitung, mehr Parameter, ignorieren großer chromaDB Distanzen, Schätzung Initialantwortzeit
+    V0.2.x -komplette Neuadaption von V0.1, völlig OHNE langchain und mit optimiertem Abfragetext
+    V0.1.x - pure langchain basierte Adaption von privateGPT, detuscher Prompt
 """
+
+"""
+Initial banner Message
+"""
+print("\nPCnewsGPT Wissensabfrage V0.2.5.3\n")
 
 """
 Load Parameters, etc.
@@ -18,17 +27,12 @@ model_temp = float(os_environ.get('MODEL_TEMP',0.4))
 max_tokens = int(os_environ.get('MAX_TOKENS',500))
 model_threads = int(os_environ.get('MODEL_THREADS',8))
 model_n_gpu = int(os_environ.get('MODEL_GPU',1))
+model_prompt_per_s = int(os_environ.get('MODEL_PROMPT_PER_S',40))
 max_context_chunks = int(os_environ.get('MAX_CONTEXT_CHUNKS',4))
 max_context_distance = float(os_environ.get('MAX_CONTEXT_DISTANCE',6.0))
 # debugging
-model_verbose = os_environ.get('MODEL_VERBOSE',"False") != "False"
 hide_source = os_environ.get('HIDE_SOURCE',"False") != "False"
 hide_source_details = os_environ.get('HIDE_SOURCE_DETAILS',"False") != "False"
-
-"""
-Initial banner Message
-"""
-print("\nPCnewsGPT Wissensabfrage V0.2.5.1\n")
 
 """
 Initialize Chroma & Embeddings & Collections
@@ -54,7 +58,7 @@ llm = Llama(model_path=model_path,
             embedding = False,
             n_threads = model_threads,
             n_gpu_layers = model_n_gpu,
-            verbose = model_verbose,
+            verbose = False,                # für initial load!
         )
 
 # Central prompt template (note: substituted context has \n at end)
@@ -70,8 +74,10 @@ while True:
     question = input("\n### Frage: ")
     if question == "":
         break
-    question = question.strip().rstrip('?').rstrip('.').strip() # increases response accuracy
 
+    # increase response accuracy by eliminating trailing ? or . or surrounding spaces
+    question = question.strip().rstrip('?').rstrip('.').strip() 
+    
     #create embeddings and ask DB for context
     result = collection.query(
         query_texts=[question],
@@ -81,7 +87,7 @@ while True:
     context_metadatas = result['metadatas'].__getitem__(0) 
     context_distances = result['distances'].__getitem__(0)
     
-    # generate LLM prompt
+    # generate LLM prompt context
     context = ""
     for i,txt in enumerate(context_texts):
         # this assumes, that the context_text items came already cleaned up from the DB
@@ -89,30 +95,33 @@ while True:
         if context_distances[i] <= max_context_distance:
             context = context + f"{i+1}. '{txt}'\n"
 
-
-    # generate LLM prompt only if we have viable context
+    # generate LLM prompt only if we have viable prompt context
     if context == "":
         print(f"\n### Keine passenden Informationen in Wissensbasis gefunden.")
     else:
         prompt = prompt_template.format(context, question)    
+
+        # determine number of tokens in prompt for answer-delay estimation
+        tokens=llm.tokenize(prompt.encode('utf-8'),add_bos=False)
+        prompt_eval_time_estimate = int(round(len(tokens) / model_prompt_per_s,0))
 
         # print statistics at end of each answer together with sources
         if not hide_source:
             llm.verbose = True
 
         # stream output tokens
-        print(f"\n### Antwort - bitte um etwas Geduld:")
+        print(f"\n### Antwort (bitte initial um ca. {prompt_eval_time_estimate}s Geduld):")
         for chunk in llm(
             prompt = prompt,
             max_tokens = max_tokens,
             temperature = model_temp,
-            echo=True,
+            echo=False,
             stop=["###"],
             stream = True,
             ):
             for choice in chunk['choices']:
                 print(choice['text'], end='', flush=True)
-        #print("",flush=True)
+        # Model automatically prints statistics after answer if not hide_source
     
     # Print sources
     if not hide_source:
@@ -127,4 +136,3 @@ while True:
                     print("")
             else:
                 print(f"[{i+1}] Ignoriert:{metadata.get('source')} Seite:{metadata.get('page','-')} Textteil:{metadata.get('chunk','-')} Distanz:{context_distances[i]:.2f}")
-
