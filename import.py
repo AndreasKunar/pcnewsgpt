@@ -13,7 +13,7 @@
 """
 Initial Banner Message
 """
-print("\nPCnewsGPT Wissensimporter V0.1.5.3\n")
+print("\nPCnewsGPT Wissensimporter V0.1.5.4\n")
 
 """
 Load Parameters, etc.
@@ -163,10 +163,10 @@ def myPDFLoader (fname) -> Langchain_Document:
         # simplified metadata for full document
         doc_metadata = {
             'source':       fname,
-            'format':       doc.metadata.get('format'), 
-            'author':       doc.metadata.get('author'), 
-            'producer':     doc.metadata.get('producer'),  
-            'creationDate': doc.metadata.get('creationDate'),  
+            'format':       doc.metadata.get('format'),
+            'author':       doc.metadata.get('author'),
+            'producer':     doc.metadata.get('producer').replace('®',''),       # get rid of (R)
+            'creationDate': doc.metadata.get('creationDate'),
         }
 
         # process all document pages (page.number+1 for "real" numbering) 

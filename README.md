@@ -2,46 +2,52 @@
 
 *Eine deutschsprachige, KI-basierte Wissensabfrage*
 
-Wir verwenden die aktuelle KI wie z.B. chatGPT oft komplett falsch – nämlich als ein Orakel. Ihre eigentliche Stärke ist aber das Verständnis unserer Sprache, und auch das sprachlich gut mit Text antworten zu können. Obwohl die KI große Teile des öffentlichen Internets gelernt hat, ist ihr spezifisches Wissen sehr beschränkt. Sie ist im Wissen nämlich sehr auf den angloamerikanischen Sprachraum fokussiert ("Bias"). Und ihr Wissen ist mit jenem Zeitpunkt eingefroren, mit dem sie fertig angelernt war – ein aktuelles Wissen kennt sie nicht. Aber noch schlimmer, die Art wie sie programmiert wurde zwingt sie, auf Fragen immer mit etwas zu antworten – damit oft etwas zu erfinden bzw. mit etwas komplett Falschem zu "halluzinieren".
+Wir verwenden die aktuelle KI wie z.B. chatGPT oft komplett falsch – nämlich zum Abfragen von Wissen, als ein Orakel. Ihre eigentliche Stärke ist aber das Verständnis unserer Sprache, und auch das sprachlich gut mit Text antworten zu können. 
 
-Ein besserer, zuverlässiger Ansatz wäre, dieser sprachgewandten KI eine faktenbasierte Wissensbasis zur Seite zu stellen. Und bei Fragen über dieses Wissen, der KI die passenden Inhalte dieser Wissensbasis als Ausgangsmaterialen zu liefern. D.h. sie nur zum Analysieren, Verdichten des Wissens, und zum Formulieren der Antwort zu verwenden. Inklusive dem Hinweis in der Antwort, dass die KI nichts zur Frage Passendes in der Wissensbasis gefunden hat, anstatt unbemerkt zu halluzinieren.
+Warum hat die aktuelle KI diese Schwäche, obwohl sie ja große Teile des öffentlichen Internets gelernt hat?
 
-Das Projekt PCnewsGPT versucht diese Idee in einer speziell auf deutschsprachigen Inhalt abgestimmten Lösung umzusetzen. Und diese Lösung vollständig auf einem lokalen Computer laufen zu lassen. Damit wird das Wissen komplett lokal und vertraulich bzw. sicher verarbeitet, ohne dem öffentlichen Internet neues KI-Lernmaterial mit ggf. vertraulichen oder urheberrechtsgeschützten Inhalten zu liefern.
++ Ihr Wissen ist mit jenem Zeitpunkt "eingefroren", mit dem sie fertig angelernt war – ein aktuelles Wissen kennt sie nicht. Und sie darf eigentlich von sich aus nicht im Internet suchen oder andere Systeme um Hilfe Bitten (z.B. chatGPT mit Hilfe von Plug-Ins darf das)
++ Die Art wie sie programmiert wurde zwingt sie, auf Fragen immer mit etwas zu antworten – damit oft etwas zu erfinden bzw. mit etwas komplett Falschem zu "halluzinieren". Ausser, sie ist spezifisch darauf angelernt, in genau diesen spezifischen Fällen mit "ich kann das nicht" zu antworten.
++ Sie ist im Wissen sehr auf den angloamerikanischen Sprachraum fokussiert ("Bias").
 
-PCnewsGPT wurde als Open-Source Python-Programme unter Apache-Lizenz realisiert und ist hier öffentlich verfügbar bzw. jederzeit anpassbar. Der Test erfolgte mit den Inhalten der ClubComputer.at/DigitalSociety.at Clubzeitschrift PC-News (als unredigierte PDFs). Daher der Name "PCnewsGPT".
+Ein besserer, zuverlässiger Ansatz wäre, dieser sprachgewandten KI eine eigene, faktenbasierte Wissensbasis zur Seite zu stellen. Und bei Fragen über dieses Wissen, der KI die passenden Inhalte aus dieser Wissensbasis als Ausgangsmaterialen zu liefern. D.h. sie nur zum Analysieren, Verdichten des Wissens, und zum Formulieren der Antwort zu verwenden. Inklusive dem Hinweis in der Antwort, dass die KI nichts zur Frage Passendes in der Wissensbasis gefunden hat, anstatt unbemerkt zu halluzinieren. Dieser Ansatz wird als "Retrieval Augmented Generation (RAG)" bezeichnet, und ist eine sehr aktiver KI-Anwendungsbereich.
+
+Das Projekt PCnewsGPT versucht diese Idee in einer speziell auf deutschsprachigen Inhalt abgestimmten Lösung umzusetzen. Und diese Lösung läuft vollständig auf einem lokalen Computer. Damit wird das Wissen ausschliesslich lokal und vertraulich bzw. sicher verarbeitet. D.h. diese Lösung vermeidet vollständig, vertrauliche oder urheberrechtsgeschützte Inhalte der eigenen Wissensbasis ins öffentliche Internet zu übertragen.
+
+PCnewsGPT wurde als Open-Source Python-Programme unter Apache-Lizenz realisiert und ist hier öffentlich verfügbar bzw. jederzeit anpassbar. Der Test der Programme erfolgte mit den Inhalten der ClubComputer.at/DigitalSociety.at Clubzeitschrift PC-News (als unredigierte PDFs). Daher der Name "PCnewsGPT".
 
 ***PCnewsGPT ist nur ein laufend weiterentwickelter Prototyp, jegliche Anwendung erfolgt auf eigene Gefahr.***
 
 ## Technische Details
 
-KI-Wissensabfrage von lokal gespeicherten PDF-Dateien mittels [Retrieval Augmented Generation (RAG)](https://www.promptingguide.ai/techniques/rag), ohne Cloud am lokalen Computer.
+KI-Wissensabfrage von lokal gespeicherten PDF-Dateien mittels [Retrieval Augmented Generation (RAG)](https://www.promptingguide.ai/techniques/rag), vollständig am lokalen Computer.
 
-PCnewsGPT besteht im Wesentlichen aus zwei Python Programmen und einer Konfigurationsdatei:
+PCnewsGPT besteht im Wesentlichen aus zwei in Python implementierten Programmteilen, samt einer Konfigurationsdatei:
 
 + `import.py` - importieren der PC-News PDF Dateien in eine lokale Wissensdatenbank
   + Derzeit orchestriert über das `langchain` KI-Framework
-  + Importiert die Dateien als einzelne Textseiten + Metadaten
-    + Derzeit derzeit nur für Dateityp .pdf (mittels `PyMuPDF`)
-    + Räumt dabei den Rohtext für bessere Lesbarkeit auf. z.B. unterteilt nach Seiten, ignoriert Leerseiten/Bildseiten, entfernt Ligaturen,...
-    + ***Optimierungspotenzial:*** "Print to PDF" erzeugte Dateien speichern im hinterlegten Text alle Ligaturen als das selbe Sonderzeichen. Dieser Text muss für die häufigtstverwendeten Wörter über Tabellen in korrekten Text umgewandelt werden. Die dafür nötige Tabelle muss noch erweitert werden.
+  + Importiert die Dateien als einzelne Textseiten und dazugehörigen Metadaten
+    + Derzeit derzeit nur für Dateityp .pdf implementiert
+      + mittels der Bibliothek `PyMuPDF`
+      + Räumt dabei den Rohtext für bessere Lesbarkeit auf. z.B. unterteilt nach Seiten, ignoriert Leerseiten/Bildseiten, entfernt Ligaturen,...
+      + ***Optimierungspotenzial:*** Mit "Microsoft Print to PDF" erzeugte Dateien speichern im hinterlegten Text alle Ligaturen als das gleiche Sonderzeichen. D.h. dieser Text wird für beim Import für die häufigtstverwendeten Wörter in lesbaren Text umgewandelt. Die dafür beim Import verwendete Ersetzungstabelle muss ggf. noch erweitert werden.
     + ***Erweiterungspotenzial:*** ergänzen um Dateitypen .txt, .doc,...
-  + Analysiert und zerteilt die importierten Texte in Wissensfragmente mittels `SpaCy`
-    + Mit max. Längenvorgabe je Wissensfragment
-    + Es wird ein speziell für deutsche Inhalstbedeutung optimierter Zusatzalgorithmus verwendet (`de_core_news_lg`)
-    + Metadaten bleiben erhalten bzw. werden ergänzt
-    + ***Optimierungspotenzial:*** Textseiten per verbesserter `SpaCy`-Pipeline besser auf konsitente Wissensfragmente zerlegen
+  + Analysiert und zerteilt die importierten Texte in Wissensfragmente (`chunks`) mittels `SpaCy` als Text-Splitter (ein Parameter)
+    + Mit max. Längenvorgabe je Wissensfragment (als Parameter)
+    + Es wird ein speziell für deutsche Inhalstbedeutung optimierter Zusatzalgorithmus verwendet (`de_core_news_lg`, als Parameter)
+    + Metadaten bleiben erhalten und werden zur besseren Identifikation um Wissensfragment (chunk) Nummern ergänzt
+    + ***Optimierungspotenzial:*** Textseiten per verbesserter `SpaCy`-Pipeline besser auf konsitente Wissensfragmente zerlegen. Ev. mehrseitige Artikel erkennen und entsprechend aufbereiten.
   + Verwendet `HuggingFace/SentenceTransformers` zum Generieren der Bedeutungs- bzw. Embedding-Vektoren. 
-    + Auch hier mit einem speziell für internationale Inhalstbedeutung optimiertem Modell (`paraphrase-multilingual-mpnet-base-v`).
-  + Verwendet `chromaDB` als Wissensbasis Datenbank/Vektor-DB zum Speichern der Embedding-Vektoren und Wissensfragmente (Text + Metadaten)
-    + mit eingebetteter `duckDB` als relationaler DB
-  + Zwei Betriebsarten - Initialimport der Datenbank und nachträgliches Hinzufügen von Inhalten
+    + Auch hier wird ein speziell für internationale Inhalstbedeutung optimiertes Modell (`paraphrase-multilingual-mpnet-base-v`, als Parameter) verwendet.
+  + Verwendet `chromaDB` als Wissensbasis Datenbank/Vektor-DB zum Speichern der Embedding-Vektoren und Wissensfragmente (Text + Metadaten), mit eingebetteter `duckDB` als relationaler DB
+  + Zwei Betriebsarten - Initialimport der Datenbank und nachträgliches Hinzufügen von Inhalten (aus zwei parametriebaren Verzeichnissen)
 
 + `abfrage.py` - KI-Abfrage dieser Wissensdatenbank mittels lokalem KI Modell
   + Verwendet die vom Import generierten Wissensbasis in der `chromaDB` Vektordatenbank und die gleichen Embeddingalgorithmen
-    + Die Benutzerfrage wird in einen Embedding-Vektor umgewandelt, und mit diesem Vektor wird in der DB nach zur Benutzerfrage passenden Context-Inhalten gesucht. Die Datenbank liefert die besten n (konfigurierbar) passenden Wissensfragmente, inkl. einer Distanzangabe. Zu weit wegliegende Ergebnisse werden ignoriert.
+  + Die Benutzerfrage wird in einen Embedding-Vektor umgewandelt, und mit diesem Vektor wird in der DB nach zur Benutzerfrage passenden Context-Inhalten gesucht. Die Datenbank liefert die besten n (konfigurierbar via Parameter) passenden Wissensfragmente, inkl. einer Distanzangabe. Zu weit wegliegende Ergebnisse werden ignoriert (Parametrierbar).
   + Verwendet `llama.cpp` und ein lokales KI Sprachmodell
-    + Das Generieren der Antwort erfolgt mit einem "prompt" bestehend aus den dazupassenden Contexttexten der Wissensdatenbank und der Benutzerfrage sowie generellen Anweisungen. Die generellen Anweisungen verhindern, daß die KI eigene Fakten generiert und sich an den Wissenskontext halten soll.
-    + Verwendet [OpenBuddy](https://openbuddy.ai) als speziell für Multilinguale Anwendungen entwickeltes KI-Modell
+    + Das Generieren der Antwort erfolgt mit einem "prompt" bestehend aus den dazupassenden Contexttexten der Wissensdatenbank und der Benutzerfrage sowie generellen Anweisungen. Die generellen Anweisungen verhindern, daß die KI eigene Fakten generiert und sich an den Wissenskontext halten sollte.
+    + Verwendet [OpenBuddy](https://openbuddy.ai) als speziell für Multilinguale Anwendungen entwickeltes KI-Modell (Parameter)
 
 + `.env` - Konfigurationsdatei
   + Alle Parameter können alternativ auch als Environment-Variables übergeben werden
@@ -124,28 +130,13 @@ Diese Installation wurde unter Apple M1/M2 basiertem macOS (in host-OS und VM) u
 
 Das Hauptproblem der verwendeten Methode (RAG) ist Garbage-in-Garbage-out, d.h. dass die Antwortqualität sehr von der Qualität der Wissensdatenbank und von der Qualität bei der Auswahl der in der LLM-Abfrage verwendeten Textfragmente abhängt.
 
-<ins>Ideen/Papers dazu:</ins>
+<ins>Generelle Ideen dazu:</ins>
 
-+ [Don’t make this “data mess” mistakes with Langchain and RAG](https://medium.com/@meta_heuristic/dont-make-this-data-mess-mistakes-with-langchain-and-rag-a07f813c21e9)
-+ Markieren des Ursprungsdatums der Datenquelle. Damit neuere Daten bei der Abfrage höher gewichten, und nicht mehr aktuelle Daten eher ignorieren.
-+ [Improving Retrieval-Augmented Large Language Models via Data Importance Learning](https://arxiv.org/pdf/2307.03027.pdf)
-+ [Improving RAG Answer Quality with Re-ranker](https://medium.com/towards-generative-ai/improving-rag-retrieval-augmented-generation-answer-quality-with-re-ranker-55a19931325)
-+ ThirdAI's NeuralDB Idee als Alternative zu Vector DB:
-  + [Limitations of Vector-Based Retrieval for RAG (1/3)](https://medium.com/thirdai-blog/understanding-the-fundamental-limitations-of-vector-based-retrieval-for-building-llm-powered-48bb7b5a57b3)
-  + [Neural Databases - Learning to Index (2/3)](https://medium.com/thirdai-blog/neural-database-next-generation-context-retrieval-system-for-building-specialized-ai-agents-with-861ffa0516e7)
-  + [ThirdAI NeuralDB RAG (3/3)](https://medium.com/thirdai-blog/thirdais-private-and-personalizable-neural-database-enhancing-retrieval-augmented-generation-f3ad52c54952)
-  + [Andrej Karpathy on how he found SVM-based similarity maybe to be better](https://twitter.com/karpathy/status/1647025230546886658)
-  + [Meta's Neural Databases](https://www.marktechpost.com/2021/08/26/facebook-ai-introduces-neural-databases-a-new-approach-which-enables-machines-to-search-unstructured-data-and-connect-the-fields-of-databases-and-nlp/)[github](https://github.com/facebookresearch/NeuralDB?)
-+ [Meine `ImprovementConcepts.md` Sammlung](./ImprovementConcepts.md)
-
-### Verbesserungsideen Import
-
-+ Datenqualitätsverbesserungen
++ Eine sehr gute Zusammenfassung von Ideen ist [10 Ways to Improve the Performance of Retrieval Augmented Generation Systems](https://medium.com/towards-data-science/10-ways-to-improve-the-performance-of-retrieval-augmented-generation-systems-5fa2cee7cd5c)
++ Garbage-in-garbage-out, d.h. die Datenqualität der Wissensbasis ist DAS Hauptproblem. Ideen dazu
   + Ev. Dokumentenanalyse mit LLM vor dem import - siehe Beispiele in `./tests`
   + Ev. optimieren der chunk-längen, overlaps und max_content_chunks - keine Programmänderung, sondern nur Parameteränderungen.
-+ Die aktuelle Version ist auf Funktion/Qualität/Änderbarkeit optimiert und langsam.
-+ `langchain` in `import.py` ist eigentlich unnötiger overhead, gehört ev. wegoptimiert (so wie in `abfrage.py`) 
-
-### Verbesserungsideen Abfrage
-
-+ Der "prompt" soll Halluzinationen vermeiden und kurz sein - es gibt dafür leider keine dt. Vorlagen/Ideen
++ Mehr in meiner [`ImprovementConcepts.md`](./ImprovementConcepts.md) Ideensammlung
++ Der "prompt" in `abfrage.py` soll Halluzinationen vermeiden und kurz sein - es gibt dafür leider keine dt. Vorlagen/Ideen. Hier ist sicher einiges an Optimierungspotenzial.
++ Die aktuelle Implementierung ist auf Funktion/Qualität/Änderbarkeit optimiert und nicht auf Geschwindigkeit.
+  + `langchain` in `import.py` ist eigentlich unnötiger overhead, gehört ev. wegoptimiert (so wie in `abfrage.py`) 

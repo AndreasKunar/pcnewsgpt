@@ -2,6 +2,19 @@
 
 Collecting Technology-Ideas for for PCnewsGPT Improvements
 
+## General Ideas
+
++ [Don’t make this “data mess” mistakes with Langchain and RAG](https://medium.com/@meta_heuristic/dont-make-this-data-mess-mistakes-with-langchain-and-rag-a07f813c21e9)
++ Markieren des Ursprungsdatums der Datenquelle. Damit neuere Daten bei der Abfrage höher gewichten, und nicht mehr aktuelle Daten eher ignorieren.
++ [Improving Retrieval-Augmented Large Language Models via Data Importance Learning](https://arxiv.org/pdf/2307.03027.pdf)
++ [Improving RAG Answer Quality with Re-ranker](https://medium.com/towards-generative-ai/improving-rag-retrieval-augmented-generation-answer-quality-with-re-ranker-55a19931325)
++ ThirdAI's NeuralDB Idee als Alternative zu Vector DB:
+  + [Limitations of Vector-Based Retrieval for RAG (1/3)](https://medium.com/thirdai-blog/understanding-the-fundamental-limitations-of-vector-based-retrieval-for-building-llm-powered-48bb7b5a57b3)
+  + [Neural Databases - Learning to Index (2/3)](https://medium.com/thirdai-blog/neural-database-next-generation-context-retrieval-system-for-building-specialized-ai-agents-with-861ffa0516e7)
+  + [ThirdAI NeuralDB RAG (3/3)](https://medium.com/thirdai-blog/thirdais-private-and-personalizable-neural-database-enhancing-retrieval-augmented-generation-f3ad52c54952)
+  + [Andrej Karpathy on how he found SVM-based similarity maybe to be better](https://twitter.com/karpathy/status/1647025230546886658)
+  + [Meta's Neural Databases](https://www.marktechpost.com/2021/08/26/facebook-ai-introduces-neural-databases-a-new-approach-which-enables-machines-to-search-unstructured-data-and-connect-the-fields-of-databases-and-nlp/)[github](https://github.com/facebookresearch/NeuralDB?)
+
 ## Semantic Web and AI
 
 [Source](https://towardsdatascience.com/what-happened-to-the-semantic-web-cbaaf547a09f)

@@ -1,7 +1,8 @@
 """
 *** PCnewsGPT Abfrage - abfrage.py ***
 
-    Änderungen: 
+    Änderungen:
+    V0.2.6.x - Einbeziehen von Datum in Quellen
     V0.2.5.x - Opimieren question-Vorverarbeitung, mehr Parameter, ignorieren großer chromaDB Distanzen, Schätzung Initialantwortzeit
     V0.2.x -komplette Neuadaption von V0.1, völlig OHNE langchain und mit optimiertem Abfragetext
     V0.1.x - pure langchain basierte Adaption von privateGPT, detuscher Prompt
@@ -10,7 +11,7 @@
 """
 Initial banner Message
 """
-print("\nPCnewsGPT Wissensabfrage V0.2.5.3\n")
+print("\nPCnewsGPT Wissensabfrage V0.2.6\n")
 
 """
 Load Parameters, etc.
@@ -58,7 +59,7 @@ llm = Llama(model_path=model_path,
             embedding = False,
             n_threads = model_threads,
             n_gpu_layers = model_n_gpu,
-            verbose = False,                # für initial load!
+            verbose = False,                # quiet on initial load
         )
 
 # Central prompt template (note: substituted context has \n at end)
@@ -84,8 +85,13 @@ while True:
         n_results=max_context_chunks
     )
     context_texts = result['documents'].__getitem__(0)
-    context_metadatas = result['metadatas'].__getitem__(0) 
     context_distances = result['distances'].__getitem__(0)
+    context_metadatas = result['metadatas'].__getitem__(0)
+    # re-format context_date (D:YYYYMMMDDD... -> YYYY-MM-DD)
+    context_dates = []
+    for i,metadata in enumerate(context_metadatas):
+        date = metadata.get('creationDate','')
+        context_dates.append(f'{date[2:6]}-{date[6:8]}-{date[8:10]}' if date.lower().startswith('d:') else date)
     
     # generate LLM prompt context
     context = ""
@@ -93,7 +99,10 @@ while True:
         # this assumes, that the context_text items came already cleaned up from the DB
         # concatenate items for prompt and ignore context information which is too far away
         if context_distances[i] <= max_context_distance:
-            context = context + f"{i+1}. '{txt}'\n"
+            context += f'{i+1}. '
+            if context_dates[i] != "":
+                context += f'von Datum {context_dates[i]}:'
+            context += f"'{txt}'\n"
 
     # generate LLM prompt only if we have viable prompt context
     if context == "":
@@ -128,10 +137,10 @@ while True:
         print(f"\n### Quellen:")
         for i,metadata in enumerate(context_metadatas):
             if (context_distances[i] <= max_context_distance):
-                print(f"[{i+1}] {metadata.get('source')} Seite:{metadata.get('page','-')} Textteil:{metadata.get('chunk','-')} Distanz:{context_distances[i]:.2f}", end="")
+                print(f"[{i+1}] {metadata.get('source','').split('/')[-1]} Seite:{metadata.get('page','-')} Textteil:{metadata.get('chunk','-')} Distanz:{context_distances[i]:.2f} Datum:{context_dates[i]}", end="")
                 if not hide_source_details:
                 # dont print real \n in source texts
-                    print(":\n'"+context_texts[i].replace("\n", "\\n")+"'")
+                    print(" :\n'"+context_texts[i].replace("\n", "\\n")+"'")
                 else:
                     print("")
             else:
