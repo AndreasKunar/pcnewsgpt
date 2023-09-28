@@ -38,13 +38,14 @@ PCnewsGPT besteht im Wesentlichen aus zwei in Python implementierten Programmtei
     + Metadaten bleiben erhalten und werden zur besseren Identifikation um Wissensfragment (chunk) Nummern ergänzt
     + ***Optimierungspotenzial:*** Textseiten per verbesserter `SpaCy`-Pipeline besser auf konsitente Wissensfragmente zerlegen. Ev. mehrseitige Artikel erkennen und entsprechend aufbereiten.
   + Verwendet `HuggingFace/SentenceTransformers` zum Generieren der Bedeutungs- bzw. Embedding-Vektoren. 
-    + Auch hier wird ein speziell für internationale Inhalstbedeutung optimiertes Modell (`paraphrase-multilingual-mpnet-base-v`, als Parameter) verwendet.
+    + Auch hier wird ein speziell für internationale Inhalstbedeutung optimiertes Modell (`intfloat/multilingual-e5-large`, als Parameter) verwendet.
   + Verwendet `chromaDB` als Wissensbasis Datenbank/Vektor-DB zum Speichern der Embedding-Vektoren und Wissensfragmente (Text + Metadaten), mit eingebetteter `duckDB` als relationaler DB
   + Zwei Betriebsarten - Initialimport der Datenbank und nachträgliches Hinzufügen von Inhalten (aus zwei parametriebaren Verzeichnissen)
 
 + `abfrage.py` - KI-Abfrage dieser Wissensdatenbank mittels lokalem KI Modell
   + Verwendet die vom Import generierten Wissensbasis in der `chromaDB` Vektordatenbank und die gleichen Embeddingalgorithmen
   + Die Benutzerfrage wird in einen Embedding-Vektor umgewandelt, und mit diesem Vektor wird in der DB nach zur Benutzerfrage passenden Context-Inhalten gesucht. Die Datenbank liefert die besten n (konfigurierbar via Parameter) passenden Wissensfragmente, inkl. einer Distanzangabe. Zu weit wegliegende Ergebnisse werden ignoriert (Parametrierbar).
+  + Neu: Context-Inhalten, welche der Frage am nächsten und untereinander näher als ein entsprechender Parameter (`MAX_RESORT_DISTANCE`) sind, werden nach Erzeugungsdatum umsortiert, und in der KI-Abfrage entsprechend priorisiert. Dies soll helfen zu vermeiden, daß veraltete Informationen verwendet werden.
   + Verwendet `llama.cpp` und ein lokales KI Sprachmodell
     + Das Generieren der Antwort erfolgt mit einem "prompt" bestehend aus den dazupassenden Contexttexten der Wissensdatenbank und der Benutzerfrage sowie generellen Anweisungen. Die generellen Anweisungen verhindern, daß die KI eigene Fakten generiert und sich an den Wissenskontext halten sollte.
     + Verwendet [OpenBuddy](https://openbuddy.ai) als speziell für Multilinguale Anwendungen entwickeltes KI-Modell (Parameter)
@@ -132,11 +133,13 @@ Das Hauptproblem der verwendeten Methode (RAG) ist Garbage-in-Garbage-out, d.h. 
 
 <ins>Generelle Ideen dazu:</ins>
 
++ Aktuell: der verwendete SpaCy Textsplitter muss optimiert werden!!
+
 + Eine sehr gute Zusammenfassung von Ideen ist [10 Ways to Improve the Performance of Retrieval Augmented Generation Systems](https://medium.com/towards-data-science/10-ways-to-improve-the-performance-of-retrieval-augmented-generation-systems-5fa2cee7cd5c)
 + Garbage-in-garbage-out, d.h. die Datenqualität der Wissensbasis ist DAS Hauptproblem. Ideen dazu
-  + Ev. Dokumentenanalyse mit LLM vor dem import - siehe Beispiele in `./tests`
-  + Ev. optimieren der chunk-längen, overlaps und max_content_chunks - keine Programmänderung, sondern nur Parameteränderungen.
+  + Ev. Dokumentenanalyse mit LLM vor dem import - siehe Experimente in `./tests`
+  + Ev. Optimierung der chunk-längen, overlaps und max_content_chunks - keine Programmänderung, sondern nur Parameteränderungen.
 + Mehr in meiner [`ImprovementConcepts.md`](./ImprovementConcepts.md) Ideensammlung
-+ Der "prompt" in `abfrage.py` soll Halluzinationen vermeiden und kurz sein - es gibt dafür leider keine dt. Vorlagen/Ideen. Hier ist sicher einiges an Optimierungspotenzial.
-+ Die aktuelle Implementierung ist auf Funktion/Qualität/Änderbarkeit optimiert und nicht auf Geschwindigkeit.
++ Der "prompt" in `abfrage.py` soll Halluzinationen vermeiden, Neues/Gutes priorisieren und kurz sein - es gibt dafür leider keine dt. Vorlagen/Ideen. Hier ist sicher einiges an Optimierungspotenzial.
++ Die aktuelle Implementierung ist auf Funktion/Qualität/Änderbarkeit optimiert und nicht auf Geschwindigkeit, das bezieht sich auch auf das verwendete Embeddingmodell.
   + `langchain` in `import.py` ist eigentlich unnötiger overhead, gehört ev. wegoptimiert (so wie in `abfrage.py`) 
