@@ -12,7 +12,7 @@
 """
 Initial banner Message
 """
-print("\nPCnewsGPT Wissensabfrage V0.2.7\n")
+print("\nPCnewsGPT Wissensabfrage V0.2.7.1\n")
 
 """
 Load Parameters, etc.
@@ -65,9 +65,16 @@ llm = Llama(model_path=model_path,
         )
 
 # Central prompt template (note: substituted context has \n at end)
-prompt_template = '###\nEs folgt eine Liste von Informationen, die wichtigsten sind am Ende: {}' + \
-                  'Anweisung: Beantworte die folgende Frage nur mit diesen Informationen.' + \
-                  '\nFrage: {}\nAntwort: '
+if model_path.find('german-assistant') >= 0:
+    # alpaca-style prompt in style "### Assistant:" "### User:"
+    # oder ... Es folgen Instruktionen für eine Aufgabe. Schreibe eine Antwort, welche die Aufgabe löst.
+    prompt_template = '###\nEs folgt eine Liste von Informationen, die wichtigsten sind am Ende: {}' + \
+                    'Antworte auf die folgende Frage nur mit diesen Informationen: {}? ### Antwort: '
+else:
+    # openbuddy, etc.
+    prompt_template = '###\nEs folgt eine Liste von Informationen, die wichtigsten sind am Ende: {}' + \
+                    'Anweisung: Beantworte die folgende Frage nur mit diesen Informationen.' + \
+                    '\nFrage: {}\nAntwort: '
 
 """
 main query loop - interactive questions and answers until empty line is entered

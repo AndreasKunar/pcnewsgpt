@@ -48,7 +48,7 @@ PCnewsGPT besteht im Wesentlichen aus zwei in Python implementierten Programmtei
   + Neu: Context-Inhalten, welche der Frage am nächsten und untereinander näher als ein entsprechender Parameter (`MAX_RESORT_DISTANCE`) sind, werden nach Erzeugungsdatum umsortiert, und in der KI-Abfrage entsprechend priorisiert. Dies soll helfen zu vermeiden, daß veraltete Informationen verwendet werden.
   + Verwendet `llama.cpp` und ein lokales KI Sprachmodell
     + Das Generieren der Antwort erfolgt mit einem "prompt" bestehend aus den dazupassenden Contexttexten der Wissensdatenbank und der Benutzerfrage sowie generellen Anweisungen. Die generellen Anweisungen verhindern, daß die KI eigene Fakten generiert und sich an den Wissenskontext halten sollte.
-    + Verwendet [OpenBuddy](https://openbuddy.ai) als speziell für Multilinguale Anwendungen entwickeltes KI-Modell (Parameter)
+    + Verwendet [OpenBuddy](https://openbuddy.ai) als speziell für Multilinguale Anwendungen bzw. [llama2-13b-german-assistant-V7](https://huggingface.co/flozi00/Llama-2-13b-german-assistant-v7) als speziell für deutschsprachige Anwendungen entwickeltes KI-Modell (Parameter)
 
 + `.env` - Konfigurationsdatei
   + Alle Parameter können alternativ auch als Environment-Variables übergeben werden
@@ -134,6 +134,7 @@ Das Hauptproblem der verwendeten Methode (RAG) ist Garbage-in-Garbage-out, d.h. 
 <ins>Generelle Ideen dazu:</ins>
 
 + Aktuell: der verwendete SpaCy Textsplitter muss optimiert werden!!
++ Neue Idee für verbessertes Textsuchen bei Abfragen: [Parent Document Retriever](https://www.youtube.com/watch?v=wQEl0GGxPcM) - das würde aber ein "cleaning" der Quelldokumente nach Artikeln bedingen.
 
 + Eine sehr gute Zusammenfassung von Ideen ist [10 Ways to Improve the Performance of Retrieval Augmented Generation Systems](https://medium.com/towards-data-science/10-ways-to-improve-the-performance-of-retrieval-augmented-generation-systems-5fa2cee7cd5c)
 + Garbage-in-garbage-out, d.h. die Datenqualität der Wissensbasis ist DAS Hauptproblem. Ideen dazu
