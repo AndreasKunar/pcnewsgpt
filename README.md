@@ -12,6 +12,8 @@ Warum hat die aktuelle KI diese Schwäche, obwohl sie ja große Teile des öffen
 
 Ein besserer, zuverlässiger Ansatz wäre, dieser sprachgewandten KI eine eigene, faktenbasierte Wissensbasis zur Seite zu stellen. Und bei Fragen über dieses Wissen, der KI die passenden Inhalte aus dieser Wissensbasis als Ausgangsmaterialen zu liefern. D.h. sie nur zum Analysieren, Verdichten des Wissens, und zum Formulieren der Antwort zu verwenden. Inklusive dem Hinweis in der Antwort, dass die KI nichts zur Frage Passendes in der Wissensbasis gefunden hat, anstatt unbemerkt zu halluzinieren. Dieser Ansatz wird als "Retrieval Augmented Generation (RAG)" bezeichnet, und ist eine sehr aktiver KI-Anwendungsbereich.
 
+***Als Einführung und weiterführende Erklärung gibts auch meinen [PC-News Artikel](./assets/PCnewsGPT%20-%20für%20PC-News.docx) (als .docx).***
+
 Das Projekt PCnewsGPT versucht diese Idee in einer speziell auf deutschsprachigen Inhalt abgestimmten Lösung umzusetzen. Und diese Lösung läuft vollständig auf einem lokalen Computer. Damit wird das Wissen ausschliesslich lokal und vertraulich bzw. sicher verarbeitet. D.h. diese Lösung vermeidet vollständig, vertrauliche oder urheberrechtsgeschützte Inhalte der eigenen Wissensbasis ins öffentliche Internet zu übertragen.
 
 PCnewsGPT wurde als Open-Source Python-Programme unter Apache-Lizenz realisiert und ist hier öffentlich verfügbar bzw. jederzeit anpassbar. Der Test der Programme erfolgte mit den Inhalten der ClubComputer.at/DigitalSociety.at Clubzeitschrift PC-News (als unredigierte PDFs). Daher der Name "PCnewsGPT".
