@@ -2,17 +2,18 @@
 *** PCnewsGPT Abfrage - abfrage.py ***
 
     Änderungen:
+    V0.2.8 - Optimierungen für Mistral-AI's "tiny" Mistral-7B-Instruct Modell
     V0.2.7.x - Bessere, aber langsamere Embeddings, sortieren des nähesten Context nach Datum
     V0.2.6.x - Einbeziehen von Datum in Quellen
     V0.2.5.x - Opimieren question-Vorverarbeitung, mehr Parameter, ignorieren großer chromaDB Distanzen, Schätzung Initialantwortzeit
-    V0.2.x -komplette Neuadaption von V0.1, völlig OHNE langchain und mit optimiertem Abfragetext
+    V0.2.x - komplette Neuadaption von V0.1, völlig OHNE langchain und mit optimiertem Abfragetext
     V0.1.x - pure langchain basierte Adaption von privateGPT, detuscher Prompt
 """
 
 """
 Initial banner Message
 """
-print("\nPCnewsGPT Wissensabfrage V0.2.7.1\n")
+print("\nPCnewsGPT Wissensabfrage V0.2.8\n")
 
 """
 Load Parameters, etc.
@@ -64,24 +65,21 @@ llm = Llama(model_path=model_path,
             verbose = False,                # quiet on initial load
         )
 
-# Central prompt template (note: substituted context has \n at end)
-if model_path.find('german-assistant') >= 0:
-    # alpaca-style prompt in style "### Assistant:" "### User:"
-    # oder ... Es folgen Instruktionen für eine Aufgabe. Schreibe eine Antwort, welche die Aufgabe löst.
-    prompt_template = '###\nEs folgt eine Liste von Informationen, die wichtigsten sind am Ende: {}' + \
-                    'Antworte auf die folgende Frage nur mit diesen Informationen: {}? ### Antwort: '
-else:
-    # openbuddy, etc.
-    prompt_template = '###\nEs folgt eine Liste von Informationen, die wichtigsten sind am Ende: {}' + \
-                    'Anweisung: Beantworte die folgende Frage nur mit diesen Informationen.' + \
-                    '\nFrage: {}\nAntwort: '
+# Central prompt template (note: substituted context has \n at end) and system-prompt prefix/suffix
+# needs updates for different models
+prompt_template = 'Es folgt eine Liste von Informationen, sortiert nach aufsteigender Wichtigkeit:\n{}' + \
+                'Anweisung: Beantworte die folgende Frage präzise und verwende diese Informationen.\n' + \
+                'Frage: {}?\nAntwort: '
+# Mistral-style instruct: <s>[INST] {prompt} [/INST]
+system_prompt_prefix = ''  # '<s>[INST] ' # only for EN dialogues
+system_prompt_suffix = ''  # ' [/INST]'   # only for EN dialogues
 
 """
 main query loop - interactive questions and answers until empty line is entered
 """
 from operator import itemgetter as operator_itemgetter
 while True:
-    # *** get user question (empty line exits) and clean it up (don't need ? or . at end, it confuses the LLM)
+    # *** get user question (empty line exits) and clean it up (also remove ? or . at end, it confuses some LLMs)
     question = input("\n### Frage: ").strip().rstrip('?').rstrip('.').strip() 
     if question == "":
         break
@@ -126,13 +124,14 @@ while True:
     # generate context string (newest at end)
     context_text=""
     for i in range(len(context)-1,-1,-1):
-        context_text += f"{i+1}. '{context_texts[context[i]]}'\n"
+        # numbered: context_text += f"{i+1}. '{context_texts[context[i]]}'\n"
+        context_text += f"'{context_texts[context[i]]}',\n"
 
     # *** generate LLM prompt only if we have viable prompt context
     if context_text == "":
         print(f"\n### Keine passenden Informationen in Wissensbasis gefunden.")
     else:
-        prompt = prompt_template.format(context_text, question)    
+        prompt = system_prompt_prefix + prompt_template.format(context_text, question) + system_prompt_suffix
 
         # determine number of tokens in prompt for answer-delay estimation
         tokens=llm.tokenize(prompt.encode('utf-8'),add_bos=False)
@@ -154,6 +153,7 @@ while True:
             ):
             for choice in chunk['choices']:
                 print(choice['text'], end='', flush=True)
+        print('')
         # Model automatically prints statistics after answer if not hide_source
     
     # Print sources
