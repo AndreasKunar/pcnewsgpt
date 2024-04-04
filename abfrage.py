@@ -69,11 +69,7 @@ llm = Llama(model_path=model_path,
 # Central prompt template (note: substituted context has \n at end) and system-prompt prefix/suffix
 # needs updates for different models
 prompt_template = 'Es folgt eine Liste von Informationen als Kontext, sortiert nach aufsteigender Wichtigkeit:\n{}' + \
-<<<<<<< HEAD
                 'Anweisung: Beantworte die folgende Frage kurz, genau, und in diesem Kontext.\n' + \
-=======
-                'Anweisung: Beantworte die folgende Frage kurz, genau und in diesem Kontext.\n' + \
->>>>>>> f6d82f45f372cbe6e7f4656c3e971ac6915f5989
                 'Frage: {}?\nAntwort: '
 # Mistral-style instruct: <s>[INST] {prompt} [/INST]
 system_prompt_prefix = ''  # '<s>[INST] ' # only for EN dialogues
