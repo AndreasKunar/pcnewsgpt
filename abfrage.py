@@ -2,7 +2,8 @@
 *** PCnewsGPT Abfrage - abfrage.py ***
 
     Änderungen:
-    V0.2.8 - Optimierungen für Mistral-AI's "tiny" Mistral-7B-Instruct Modell
+    V0.2.9 - Prompt-Optimierungen
+    V0.2.8 - Optimierungen für Mistral-AI's "tiny" Mistral-7B-InstructV0.2 Modell
     V0.2.7.x - Bessere, aber langsamere Embeddings, sortieren des nähesten Context nach Datum
     V0.2.6.x - Einbeziehen von Datum in Quellen
     V0.2.5.x - Opimieren question-Vorverarbeitung, mehr Parameter, ignorieren großer chromaDB Distanzen, Schätzung Initialantwortzeit
@@ -13,7 +14,7 @@
 """
 Initial banner Message
 """
-print("\nPCnewsGPT Wissensabfrage V0.2.8\n")
+print("\nPCnewsGPT Wissensabfrage V0.2.9\n")
 
 """
 Load Parameters, etc.
@@ -67,8 +68,8 @@ llm = Llama(model_path=model_path,
 
 # Central prompt template (note: substituted context has \n at end) and system-prompt prefix/suffix
 # needs updates for different models
-prompt_template = 'Es folgt eine Liste von Informationen, sortiert nach aufsteigender Wichtigkeit:\n{}' + \
-                'Anweisung: Beantworte die folgende Frage präzise und verwende diese Informationen.\n' + \
+prompt_template = 'Es folgt eine Liste von Informationen als Kontext, sortiert nach aufsteigender Wichtigkeit:\n{}' + \
+                'Anweisung: Beantworte die folgende Frage kurz, genau, und in diesem Kontext.\n' + \
                 'Frage: {}?\nAntwort: '
 # Mistral-style instruct: <s>[INST] {prompt} [/INST]
 system_prompt_prefix = ''  # '<s>[INST] ' # only for EN dialogues
@@ -80,7 +81,7 @@ main query loop - interactive questions and answers until empty line is entered
 from operator import itemgetter as operator_itemgetter
 while True:
     # *** get user question (empty line exits) and clean it up (also remove ? or . at end, it confuses some LLMs)
-    question = input("\n### Frage: ").strip().rstrip('?').rstrip('.').strip() 
+    question = input("\n### Neue Frage: ").strip().rstrip('?').rstrip('.').strip() 
     if question == "":
         break
 
